@@ -1,65 +1,178 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>Login</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>로그인 | 루엔 AI 프로세서</title>
 
-        .login-box {
-            background: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            width: 300px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
+  <!-- (선택) 공통 CSS -->
+  <!-- <link rel="stylesheet" href="./css/common.css" /> -->
+  <link rel="stylesheet" href="./css/main.css" />
 
-        .login-box h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+  <!-- Supabase JS (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-        .login-box input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
+  <!-- Auth Logic -->
+  <script defer src="./js/auth.js"></script>
 
-        .login-box button {
-            width: 100%;
-            padding: 10px;
-            background: #007bff;
-            border: none;
-            color: #fff;
-            font-size: 16px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
+  <style>
+    /* login.html 전용(필요 최소) - main.css를 우선 사용 */
+    .auth-page{min-height:100%;display:flex;align-items:center;justify-content:center;padding:28px 0 46px;}
+    .auth-shell{width:min(980px,92vw);display:grid;grid-template-columns:420px 1fr;gap:18px;align-items:stretch;}
+    .card{
+      border-radius:26px;background:rgba(255,255,255,.92);border:1px solid rgba(16,18,24,.10);
+      box-shadow:0 22px 70px rgba(16,18,24,.10);position:relative;overflow:hidden;
+    }
+    .card::before{content:"";position:absolute;inset:0;
+      background:radial-gradient(700px 320px at 20% 0%, rgba(107,92,255,.10), transparent 62%),
+                 radial-gradient(650px 320px at 90% 10%, rgba(35,215,200,.10), transparent 62%);
+      pointer-events:none;
+    }
+    .card-inner{position:relative;padding:22px;}
+    .pill{display:inline-flex;align-items:center;padding:9px 12px;border-radius:999px;background:rgba(107,92,255,.08);
+      border:1px solid rgba(107,92,255,.14);font-weight:900;font-size:13px;letter-spacing:-.2px;}
+    .title{margin:14px 0 8px;font-size:26px;letter-spacing:-.9px;line-height:1.08;}
+    .desc{margin:0;color:rgba(16,18,24,.58);font-size:14px;line-height:1.6;}
 
-        .login-box button:hover {
-            background: #0056b3;
-        }
-    </style>
+    .field{margin-top:12px;}
+    .label{display:block;margin:0 0 7px;font-size:13px;font-weight:800;color:rgba(16,18,24,.86);letter-spacing:-.2px;}
+    .input{width:100%;padding:12px 12px;border-radius:14px;border:1px solid rgba(16,18,24,.12);
+      background:rgba(247,248,251,.92);outline:none;}
+    .input:focus{border-color:rgba(107,92,255,.38);background:#fff;box-shadow:0 0 0 4px rgba(107,92,255,.12);}
+
+    .btn{appearance:none;width:100%;margin-top:12px;padding:12px 16px;border-radius:14px;
+      border:1px solid rgba(16,18,24,.12);background:rgba(255,255,255,.92);
+      font-weight:900;font-size:14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;}
+    .btn-primary{color:#fff;border:1px solid rgba(107,92,255,.22);
+      background:radial-gradient(120% 180% at 10% 0%, rgba(255,255,255,.28), transparent 45%),
+                 linear-gradient(135deg, #6b5cff 0%, #7A5CFF 45%, rgba(35,215,200,.88) 120%);
+      box-shadow:0 18px 32px rgba(107,92,255,.22);
+    }
+    .btn-ghost{background:rgba(255,255,255,.72);box-shadow:none;}
+    .row{display:flex;gap:10px;margin-top:12px;}
+    .row .btn{margin-top:0;}
+
+    .msg{margin-top:10px;font-size:13px;line-height:1.5;}
+    .msg.ok{color:#0a7a4a;}
+    .msg.err{color:#c5314a;}
+
+    /* 회원가입 패널 (열고/닫기 유지) */
+    .signup-panel{
+      margin-top:14px;border-radius:18px;border:1px solid rgba(16,18,24,.10);
+      background:rgba(255,255,255,.72);overflow:hidden;max-height:0;opacity:0;
+      transition:max-height .35s ease, opacity .25s ease;
+    }
+    .signup-panel.open{max-height:520px;opacity:1;}
+    .signup-inner{padding:14px;}
+
+    /* 브랜드 영역 placeholder */
+    .brand{
+      border-radius:26px;border:1px solid rgba(16,18,24,.10);
+      background:rgba(255,255,255,.65);
+      box-shadow:0 10px 24px rgba(16,18,24,.06);
+      overflow:hidden;position:relative;
+    }
+    .brand::before{
+      content:"";position:absolute;inset:-2px;
+      background:
+        radial-gradient(700px 520px at 25% 20%, rgba(107,92,255,.18), transparent 58%),
+        radial-gradient(650px 520px at 75% 30%, rgba(35,215,200,.16), transparent 58%),
+        radial-gradient(650px 520px at 55% 85%, rgba(255,77,141,.12), transparent 62%);
+      opacity:.85;pointer-events:none;
+    }
+    .brand-box{height:100%;padding:22px;display:flex;align-items:center;justify-content:center;position:relative;}
+    .brand-ph{
+      width:min(520px,100%);border-radius:22px;background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.78));
+      border:1px dashed rgba(16,18,24,.22);padding:26px 22px;text-align:center;
+      box-shadow:0 18px 40px rgba(16,18,24,.08);
+    }
+    .brand-badge{display:inline-flex;padding:8px 12px;border-radius:999px;background:rgba(35,215,200,.10);
+      border:1px solid rgba(35,215,200,.18);font-weight:900;font-size:12px;letter-spacing:.6px;color:rgba(16,18,24,.78);}
+    .brand-title{margin-top:14px;font-weight:900;font-size:20px;letter-spacing:-.6px;}
+    .brand-sub{margin-top:8px;font-size:14px;color:rgba(16,18,24,.60);line-height:1.6;}
+
+    @media (max-width: 980px){
+      .auth-shell{grid-template-columns:1fr;}
+      .brand{min-height:260px;}
+    }
+  </style>
 </head>
 <body>
 
-<div class="login-box">
-    <h2>Login</h2>
-    <form action="login.php" method="post">
-        <input type="text" name="username" placeholder="ID" required>
-        <input type="password" name="password" placeholder="Password" required>
-        <button type="submit">로그인</button>
-    </form>
-</div>
+  <main class="auth-page">
+    <section class="auth-shell">
+
+      <!-- 로그인 카드 -->
+      <section class="card" aria-label="로그인">
+        <div class="card-inner">
+          <span class="pill">luenAI</span>
+          <h1 class="title">루엔 AI 프로세서</h1>
+          <p class="desc">아이디(이메일)와 비밀번호로 로그인하세요.</p>
+
+          <form id="loginForm" autocomplete="on">
+            <div class="field">
+              <label class="label" for="loginEmail">아이디(이메일)</label>
+              <input class="input" id="loginEmail" type="email" placeholder="example@domain.com" autocomplete="username" required />
+            </div>
+
+            <div class="field">
+              <label class="label" for="loginPassword">비밀번호</label>
+              <input class="input" id="loginPassword" type="password" placeholder="비밀번호 입력" autocomplete="current-password" required />
+            </div>
+
+            <button class="btn btn-primary" type="submit">로그인</button>
+
+            <div class="row">
+              <button class="btn btn-ghost" id="openSignupBtn" type="button">회원가입</button>
+              <button class="btn btn-ghost" id="logoutBtn" type="button" style="display:none;">로그아웃</button>
+            </div>
+
+            <div id="loginMsg" class="msg" aria-live="polite"></div>
+          </form>
+
+          <!-- 회원가입 패널 -->
+          <section id="signupPanel" class="signup-panel" aria-label="회원가입 패널">
+            <div class="signup-inner">
+              <form id="signupForm" autocomplete="on">
+                <div class="field" style="margin-top:0;">
+                  <label class="label" for="signupEmail">이메일</label>
+                  <input class="input" id="signupEmail" type="email" placeholder="example@domain.com" autocomplete="email" required />
+                </div>
+
+                <div class="field">
+                  <label class="label" for="signupPassword">비밀번호</label>
+                  <input class="input" id="signupPassword" type="password" placeholder="비밀번호 입력" autocomplete="new-password" required />
+                </div>
+
+                <div class="field">
+                  <label class="label" for="signupPassword2">비밀번호 확인</label>
+                  <input class="input" id="signupPassword2" type="password" placeholder="비밀번호 재입력" autocomplete="new-password" required />
+                </div>
+
+                <button class="btn btn-primary" type="submit">회원가입 완료</button>
+                <button class="btn btn-ghost" id="closeSignupBtn" type="button">닫기</button>
+
+                <div id="signupMsg" class="msg" aria-live="polite"></div>
+              </form>
+            </div>
+          </section>
+
+        </div>
+      </section>
+
+      <!-- 브랜드 일러스트 placeholder -->
+      <aside class="brand" aria-label="브랜드 이미지 영역">
+        <div class="brand-box">
+          <div class="brand-ph">
+            <div class="brand-badge">BRAND IMAGE</div>
+            <div class="brand-title">일러스트 / 브랜드 이미지 영역</div>
+            <div class="brand-sub">여기에 브랜드 비주얼을 넣어주세요.</div>
+          </div>
+        </div>
+      </aside>
+
+    </section>
+  </main>
 
 </body>
 </html>

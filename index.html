@@ -1,60 +1,81 @@
-<!-- index.html v3 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>luenAI 프로세서</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>루엔 AI 프로세서</title>
 
-  <link rel="stylesheet" href="./css/common.css" />
+  <!-- (선택) 공통 CSS가 있으면 유지 -->
+  <!-- <link rel="stylesheet" href="./css/common.css" /> -->
+
   <link rel="stylesheet" href="./css/main.css" />
 </head>
 <body>
+  <main class="page">
+    <section class="stage" aria-label="luenAI 로그인">
 
-  <main class="auth">
-    <div class="auth-shell">
+      <!-- Background brand illustration placeholder (swap later) -->
+      <div class="brand-visual" aria-hidden="true">
+        <div class="brand-card">
+          <div class="brand-badge">BRAND</div>
+          <div class="brand-title">일러스트/브랜드 이미지 영역</div>
+          <div class="brand-sub">추후 이미지로 교체 가능</div>
 
-      <!-- Login Card -->
-      <section class="auth-card" aria-label="로그인">
-        <div class="auth-head">
-          <span class="auth-badge">luenAI</span>
-          <h1 class="auth-title">루엔 AI 프로세서</h1>
-          <p class="auth-sub">아이디와 비밀번호를 입력해 주세요.</p>
-        </div>
-
-        <form class="auth-form" action="login.html" method="get">
-          <div class="field">
-            <label class="label" for="username">아이디</label>
-            <input class="input" id="username" name="username" type="text" placeholder="아이디 입력" required />
-          </div>
-
-          <div class="field">
-            <label class="label" for="password">비밀번호</label>
-            <input class="input" id="password" name="password" type="password" placeholder="비밀번호 입력" required />
-          </div>
-
-          <button class="btn primary full" type="submit">로그인</button>
-          <a class="btn ghost full" href="register.html">회원가입</a>
-        </form>
-
-        <div class="auth-foot">
-          <span class="foot-txt">© 2026 luenAI</span>
-        </div>
-      </section>
-
-      <!-- Brand Illustration Placeholder -->
-      <aside class="brand" aria-label="브랜드 이미지 영역">
-        <div class="brand-box">
-          <div class="brand-placeholder">
-            <div class="ph-badge">BRAND IMAGE</div>
-            <div class="ph-title">일러스트 / 이미지 영역</div>
-            <div class="ph-sub">여기에 브랜드 비주얼을 넣어주세요.</div>
+          <div class="brand-shapes">
+            <span class="shape s1"></span>
+            <span class="shape s2"></span>
+            <span class="shape s3"></span>
           </div>
         </div>
-      </aside>
+      </div>
 
-    </div>
+      <!-- Center login card -->
+      <div class="login-wrap">
+        <div class="login-card">
+          <header class="login-head">
+            <span class="pill">luenAI</span>
+            <h1 class="title">루엔 AI 프로세서</h1>
+            <p class="desc">아이디와 비밀번호를 입력해 주세요.</p>
+          </header>
+
+          <form class="form" action="login.html" method="get">
+            <div class="field">
+              <label class="label" for="username">아이디</label>
+              <input
+                class="input"
+                id="username"
+                name="username"
+                type="text"
+                placeholder="아이디 입력"
+                autocomplete="username"
+                required
+              />
+            </div>
+
+            <div class="field">
+              <label class="label" for="password">비밀번호</label>
+              <input
+                class="input"
+                id="password"
+                name="password"
+                type="password"
+                placeholder="비밀번호 입력"
+                autocomplete="current-password"
+                required
+              />
+            </div>
+
+            <button class="btn btn-primary" type="submit">로그인</button>
+            <a class="btn btn-ghost" href="register.html">회원가입</a>
+          </form>
+
+          <footer class="login-foot">
+            <span>© 2026 luenAI</span>
+          </footer>
+        </div>
+      </div>
+
+    </section>
   </main>
-
 </body>
 </html>

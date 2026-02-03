@@ -1,4 +1,4 @@
-/* css/main.css (전체 교체본) - 로딩/disabled/메시지 UI 포함 */
+/* css/main.css (전체 교체본) */
 @import url("https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap");
 
 :root{
@@ -351,26 +351,6 @@ body::before{
   overflow:auto;
 }
 
-.notice{
-  margin-top:14px;
-  border-radius:16px;
-  border:1px solid rgba(16,18,24,.10);
-  background: rgba(255,255,255,.72);
-  padding: 12px 12px;
-}
-.notice-title{
-  font-weight:900;
-  font-size: 12px;
-  letter-spacing:-.2px;
-}
-.notice-text{
-  margin-top:6px;
-  font-size:12px;
-  color: rgba(16,18,24,.58);
-  line-height:1.45;
-}
-
-/* Responsive */
 @media (max-width: 980px){
   .brand-visual{ justify-content:center; padding: 18px; }
   .brand-card{ width:min(560px, 92vw); height: 260px; }

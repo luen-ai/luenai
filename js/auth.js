@@ -1,4 +1,4 @@
-/* js/auth.js - Supabase Auth (Login/Signup) */
+/* js/auth.js - Supabase Auth (Login + Signup Slide Panel) */
 
 const SUPABASE_URL = "https://dgrcqwsjhffhfnyhazzn.supabase.co";
 const SUPABASE_ANON_KEY =
@@ -11,18 +11,18 @@ const loginForm = document.getElementById("loginForm");
 const loginEmail = document.getElementById("loginEmail");
 const loginPassword = document.getElementById("loginPassword");
 const loginMsg = document.getElementById("loginMsg");
+const logoutBtn = document.getElementById("logoutBtn");
 
 const openSignupBtn = document.getElementById("openSignupBtn");
 const closeSignupBtn = document.getElementById("closeSignupBtn");
-const signupPanel = document.getElementById("signupPanel");
+const signupOverlay = document.getElementById("signupOverlay");
+const signupSheet = document.getElementById("signupSheet");
 
 const signupForm = document.getElementById("signupForm");
 const signupEmail = document.getElementById("signupEmail");
 const signupPassword = document.getElementById("signupPassword");
 const signupPassword2 = document.getElementById("signupPassword2");
 const signupMsg = document.getElementById("signupMsg");
-
-const logoutBtn = document.getElementById("logoutBtn");
 
 function setMsg(el, text, type) {
   if (!el) return;
@@ -33,17 +33,32 @@ function setMsg(el, text, type) {
 }
 
 function openSignup() {
-  signupPanel?.classList.add("open");
+  signupOverlay?.classList.add("open");
+  signupSheet?.classList.add("open");
+  signupOverlay?.setAttribute("aria-hidden", "false");
   setMsg(signupMsg, "", "");
+  // focus
+  setTimeout(() => signupEmail?.focus(), 50);
 }
 
 function closeSignup() {
-  signupPanel?.classList.remove("open");
+  signupOverlay?.classList.remove("open");
+  signupSheet?.classList.remove("open");
+  signupOverlay?.setAttribute("aria-hidden", "true");
   setMsg(signupMsg, "", "");
+  // return focus
+  setTimeout(() => openSignupBtn?.focus(), 50);
 }
 
 openSignupBtn?.addEventListener("click", openSignup);
 closeSignupBtn?.addEventListener("click", closeSignup);
+signupOverlay?.addEventListener("click", closeSignup);
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    if (signupSheet?.classList.contains("open")) closeSignup();
+  }
+});
 
 // Login
 loginForm?.addEventListener("submit", async (e) => {
@@ -58,8 +73,6 @@ loginForm?.addEventListener("submit", async (e) => {
     if (error) throw error;
 
     setMsg(loginMsg, "로그인 성공! 이동 중...", "ok");
-
-    // 원하는 대로: 로그인 성공 시 dashboard.html 이동
     window.location.href = "dashboard.html";
   } catch (err) {
     setMsg(loginMsg, err?.message || "로그인 실패", "err");
@@ -88,21 +101,21 @@ signupForm?.addEventListener("submit", async (e) => {
     const { data, error } = await sb.auth.signUp({ email, password: pw1 });
     if (error) throw error;
 
-    // Supabase 설정에 따라 이메일 인증이 필요할 수 있음
     if (data?.user && !data?.session) {
       setMsg(signupMsg, "가입 완료! 이메일 인증 후 로그인해 주세요.", "ok");
     } else {
       setMsg(signupMsg, "가입 완료! 로그인해 주세요.", "ok");
     }
 
-    // UX 유지: 패널은 열어두고, 로그인 폼에 이메일 미리 채움
+    // 로그인 폼에 이메일 미리 채움 + 패널 닫기(자연스럽게)
     if (loginEmail) loginEmail.value = email;
+    setTimeout(() => closeSignup(), 450);
   } catch (err) {
     setMsg(signupMsg, err?.message || "회원가입 실패", "err");
   }
 });
 
-// Session UI (optional)
+// Optional logout UI
 async function refreshSessionUI() {
   const { data } = await sb.auth.getSession();
   const isLoggedIn = !!data?.session;

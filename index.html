@@ -6,8 +6,15 @@
   <title>루엔 AI 프로세서</title>
 
   <link rel="stylesheet" href="./css/main.css" />
+
+  <!-- Supabase JS (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Index Logic -->
+  <script defer src="./js/main.js"></script>
 </head>
 <body>
+
   <main class="page">
     <section class="stage" aria-label="luenAI 로그인">
 
@@ -35,11 +42,22 @@
             <p class="desc">아이디(이메일)와 비밀번호로 로그인하세요.</p>
           </header>
 
-          <!-- index에서는 입력 없이 이동만 -->
-          <div class="form" style="padding-top:0;">
-            <a class="btn btn-primary" href="login.html">로그인</a>
-            <a class="btn btn-ghost" href="login.html">회원가입</a>
-          </div>
+          <form id="loginForm" class="form" autocomplete="on">
+            <div class="field">
+              <label class="label" for="loginId">아이디(이메일)</label>
+              <input class="input" id="loginId" type="email" placeholder="example@domain.com" autocomplete="username" required />
+            </div>
+
+            <div class="field">
+              <label class="label" for="loginPassword">비밀번호</label>
+              <input class="input" id="loginPassword" type="password" placeholder="비밀번호 입력" autocomplete="current-password" required />
+            </div>
+
+            <button class="btn btn-primary" type="submit">로그인</button>
+            <button class="btn btn-ghost" id="openSignupBtn" type="button">회원가입</button>
+
+            <div id="loginMsg" class="msg" aria-live="polite"></div>
+          </form>
 
           <footer class="login-foot">
             <span>© 2026 luenAI</span>
@@ -49,5 +67,62 @@
 
     </section>
   </main>
+
+  <!-- Overlay + Slide Panel (Index에서 바로 열림) -->
+  <div id="signupOverlay" class="overlay" aria-hidden="true"></div>
+
+  <aside id="signupSheet" class="sheet" aria-label="회원가입">
+    <div class="sheet-head">
+      <div>
+        <h2 class="sheet-title">회원가입</h2>
+        <p class="sheet-sub">필수 정보를 입력해 계정을 생성합니다.</p>
+      </div>
+      <button id="closeSignupBtn" class="icon-btn" type="button" aria-label="닫기">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="sheet-body">
+      <form id="signupForm" autocomplete="on">
+
+        <div class="field">
+          <label class="label" for="signupId">아이디(이메일)</label>
+          <input class="input" id="signupId" type="email" placeholder="example@domain.com" autocomplete="email" required />
+        </div>
+
+        <div class="field">
+          <label class="label" for="signupPassword">비밀번호</label>
+          <input class="input" id="signupPassword" type="password" placeholder="비밀번호 입력(6자 이상)" autocomplete="new-password" required />
+        </div>
+
+        <div class="field">
+          <label class="label" for="signupName">이름</label>
+          <input class="input" id="signupName" type="text" placeholder="이름 입력" autocomplete="name" required />
+        </div>
+
+        <div class="field">
+          <label class="label" for="signupPhone">전화번호</label>
+          <input class="input" id="signupPhone" type="tel" placeholder="010-0000-0000" autocomplete="tel" required />
+        </div>
+
+        <div class="field">
+          <label class="label" for="signupBank">은행</label>
+          <input class="input" id="signupBank" type="text" placeholder="은행명 입력" required />
+        </div>
+
+        <div class="field">
+          <label class="label" for="signupAccount">계좌번호</label>
+          <input class="input" id="signupAccount" type="text" placeholder="계좌번호 입력" inputmode="numeric" required />
+        </div>
+
+        <button class="btn btn-primary" type="submit">회원가입 완료</button>
+
+        <div id="signupMsg" class="msg" aria-live="polite"></div>
+      </form>
+    </div>
+  </aside>
+
 </body>
 </html>

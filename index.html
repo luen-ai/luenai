@@ -5,16 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>루엔 AI 프로세서</title>
 
-  <!-- (선택) 공통 CSS가 있으면 유지 -->
-  <!-- <link rel="stylesheet" href="./css/common.css" /> -->
-
   <link rel="stylesheet" href="./css/main.css" />
 </head>
 <body>
   <main class="page">
     <section class="stage" aria-label="luenAI 로그인">
 
-      <!-- Background brand illustration placeholder (swap later) -->
+      <!-- Background brand illustration placeholder -->
       <div class="brand-visual" aria-hidden="true">
         <div class="brand-card">
           <div class="brand-badge">BRAND</div>
@@ -35,39 +32,14 @@
           <header class="login-head">
             <span class="pill">luenAI</span>
             <h1 class="title">루엔 AI 프로세서</h1>
-            <p class="desc">아이디와 비밀번호를 입력해 주세요.</p>
+            <p class="desc">아이디(이메일)와 비밀번호로 로그인하세요.</p>
           </header>
 
-          <form class="form" action="login.html" method="get">
-            <div class="field">
-              <label class="label" for="username">아이디</label>
-              <input
-                class="input"
-                id="username"
-                name="username"
-                type="text"
-                placeholder="아이디 입력"
-                autocomplete="username"
-                required
-              />
-            </div>
-
-            <div class="field">
-              <label class="label" for="password">비밀번호</label>
-              <input
-                class="input"
-                id="password"
-                name="password"
-                type="password"
-                placeholder="비밀번호 입력"
-                autocomplete="current-password"
-                required
-              />
-            </div>
-
-            <button class="btn btn-primary" type="submit">로그인</button>
-            <a class="btn btn-ghost" href="register.html">회원가입</a>
-          </form>
+          <!-- index에서는 입력 없이 이동만 -->
+          <div class="form" style="padding-top:0;">
+            <a class="btn btn-primary" href="login.html">로그인</a>
+            <a class="btn btn-ghost" href="login.html">회원가입</a>
+          </div>
 
           <footer class="login-foot">
             <span>© 2026 luenAI</span>

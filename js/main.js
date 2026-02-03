@@ -1,8 +1,15 @@
 /* js/main.js (전체 교체본)
-   - 비밀번호 최소 길이 4 통일(앞/뒤 공백 trim 후 길이 체크)
-   - Supabase 에러는 콘솔로만 상세 출력, 화면은 한국어 메시지 매핑
-   - 429(rate limit)일 때만 10초 쿨다운 카운트다운 후 자동 재활성화
-   - 이메일/주소/단어는 사용자 화면에 절대 노출 금지
+   핵심 수정:
+   - 비밀번호 최소 길이: 서버 기본값(GoTrue) 6에 맞춰 "6"으로 완전 통일 (프론트/UI/메시지)
+     * GoTrue 기본 최소 길이 6 (환경설정으로 변경 가능) :contentReference[oaicite:0]{index=0}
+   - 429 무한 반복 방지:
+     * 1클릭 1요청(onsubmit 단일 바인딩 + inFlight 가드)
+     * 429일 때만 쿨다운, 추가 요청 절대 없음
+     * 429 재발 시 쿨다운을 10→30→60초로 자동 증가(서버 윈도우가 60초인 케이스 대응) :contentReference[oaicite:1]{index=1}
+   - 실패 원인 분리:
+     * password too short / rate limit / username duplicate / 기타
+     * 상세 에러는 console에만 출력
+     * 화면에는 email 관련 단어/주소 절대 노출 금지
 */
 (() => {
   if (window.__LUEN_INDEX_INIT__) return;
@@ -20,32 +27,30 @@
 
   const $ = (id) => document.getElementById(id);
 
-  // ===== 확정 정책 =====
-  const MIN_PASSWORD_LEN = 4;
-  const FAKE_DOMAIN = "luenai.app"; // 내부용(사용자 노출 금지)
+  // ===== 정책(서버/프론트/UI 통일) =====
+  // Supabase(GoTrue) 기본 최소 길이 6 → 여기서도 6으로 고정
+  const MIN_PASSWORD_LEN = 6;
+
+  // 랜덤 이메일(내부용) - 사용자에게 절대 노출 금지
+  const FAKE_DOMAIN = "luenai.app";
+  const safeUUID = () => {
+    try { if (crypto?.randomUUID) return crypto.randomUUID(); } catch (_) {}
+    const r = () => Math.random().toString(16).slice(2);
+    return `${Date.now().toString(16)}-${r()}-${r()}-${r()}`;
+  };
+  const makeRandomEmail = () => `${safeUUID()}@${FAKE_DOMAIN}`;
 
   // username: 숫자-only 허용, 영문/숫자/_ 허용, 공백 금지
   const normalizeUsername = (v) => (v ?? "").toString().trim();
   const isValidUsername = (u) => {
     if (!u) return false;
-    if (/\s/.test(u)) return false;          // 공백 금지
-    if (!/^[A-Za-z0-9_]+$/.test(u)) return false; // 영문/숫자/_ 만
+    if (/\s/.test(u)) return false;
+    if (!/^[A-Za-z0-9_]+$/.test(u)) return false;
     return true;
   };
 
-  // password: 앞/뒤 공백 제거 후 길이 체크 (4자 이상)
+  // password: 앞/뒤 공백 제거 후 길이 체크
   const normalizePassword = (v) => (v ?? "").toString().trim();
-  const isValidPassword = (p) => normalizePassword(p).length >= MIN_PASSWORD_LEN;
-
-  const safeUUID = () => {
-    try { if (crypto?.randomUUID) return crypto.randomUUID(); } catch (_) {}
-    // fallback
-    const r = () => Math.random().toString(16).slice(2);
-    return `${Date.now().toString(16)}-${r()}-${r()}-${r()}`;
-  };
-
-  // username@도메인 방식 폐기 → 랜덤 이메일
-  const makeRandomEmail = () => `${safeUUID()}@${FAKE_DOMAIN}`;
 
   const setMsg = (el, text, type) => {
     if (!el) return;
@@ -59,10 +64,15 @@
     if (!btn) return;
     btn.disabled = !!busy;
     btn.classList.toggle("is-busy", !!busy);
-    if (!btn.dataset.prevText) btn.dataset.prevText = btn.querySelector(".btn-text")?.textContent || btn.textContent;
-    const t = btn.querySelector(".btn-text");
-    if (t) t.textContent = busy ? busyText : btn.dataset.prevText;
-    else btn.textContent = busy ? busyText : btn.dataset.prevText;
+
+    const textEl = btn.querySelector(".btn-text");
+    if (textEl) {
+      if (!btn.dataset.prevText) btn.dataset.prevText = textEl.textContent;
+      textEl.textContent = busy ? busyText : btn.dataset.prevText;
+    } else {
+      if (!btn.dataset.prevText) btn.dataset.prevText = btn.textContent;
+      btn.textContent = busy ? busyText : btn.dataset.prevText;
+    }
   };
 
   const isRateLimit = (err) => {
@@ -71,7 +81,7 @@
     return status === 429 || msg.includes("rate limit") || msg.includes("too many requests");
   };
 
-  // 화면용 메시지(이메일 관련 단어 절대 금지)
+  // ===== 화면 메시지(이메일 단어/주소 절대 금지) =====
   const mapSignupError = (err) => {
     const msg = String(err?.message || "").toLowerCase();
     const code = String(err?.code || "").toLowerCase();
@@ -81,7 +91,7 @@
       return "이미 사용 중인 아이디입니다";
     }
 
-    // 서버 비밀번호 정책 불일치/짧음/weak password 등
+    // 비밀번호 정책 위반
     if (
       code.includes("weak_password") ||
       (msg.includes("password") && (msg.includes("short") || msg.includes("at least") || msg.includes("weak") || msg.includes("length")))
@@ -93,7 +103,7 @@
       return "요청이 많습니다. 잠시 후 다시 시도해주세요";
     }
 
-    // 이메일 관련 문구는 절대 노출 금지 → 일반화
+    // email 관련 문구는 전부 일반화
     if (msg.includes("email") || msg.includes("address")) {
       return "가입에 실패했습니다. 잠시 후 다시 시도해주세요";
     }
@@ -109,24 +119,42 @@
     return "잠시 후 다시 시도해주세요";
   };
 
-  // 429 쿨다운(가입 버튼만)
-  const startCooldown = (btn, msgEl, seconds = 10) => {
-    let left = seconds;
-    setBusy(btn, true, `잠시만요 (${left}s)`);
-    setMsg(msgEl, `요청이 많습니다. ${left}초 후 다시 시도해주세요`, "err");
+  // 429 쿨다운: 10초 시작, 재발 시 30→60으로 증가 (백그라운드 요청 없음)
+  const makeCooldownController = () => {
+    let lastWindow = 10;
+    let timer = null;
 
-    const timer = setInterval(() => {
-      left -= 1;
-      if (left <= 0) {
-        clearInterval(timer);
-        setBusy(btn, false);
-        setMsg(msgEl, "다시 시도할 수 있습니다.", "");
-        return;
-      }
+    const start = (btn, msgEl) => {
+      // 쿨다운 중이면 무시
+      if (timer) return;
+
+      let left = lastWindow;
+      // 다음 429 대비 윈도우 증가(10→30→60)
+      lastWindow = Math.min(lastWindow === 10 ? 30 : 60, 60);
+
       setBusy(btn, true, `잠시만요 (${left}s)`);
       setMsg(msgEl, `요청이 많습니다. ${left}초 후 다시 시도해주세요`, "err");
-    }, 1000);
+
+      timer = setInterval(() => {
+        left -= 1;
+        if (left <= 0) {
+          clearInterval(timer);
+          timer = null;
+          setBusy(btn, false);
+          setMsg(msgEl, "다시 시도할 수 있습니다.", "");
+          return;
+        }
+        setBusy(btn, true, `잠시만요 (${left}s)`);
+        setMsg(msgEl, `요청이 많습니다. ${left}초 후 다시 시도해주세요`, "err");
+      }, 1000);
+    };
+
+    const resetBackoff = () => { lastWindow = 10; };
+
+    return { start, resetBackoff };
   };
+
+  const signupCooldown = makeCooldownController();
 
   // 가입 실패 시 정리(가능하면)
   const tryRollbackUser = async () => {
@@ -162,11 +190,10 @@
 
     if (!loginForm || !openSignupBtn || !signupOverlay || !signupSheet || !signupForm) return;
 
+    // ===== 이벤트 중복 방지: on*로 단일 바인딩 (이전 addEventListener 흔적 제거 효과) =====
+    // open/close
     let isOpen = false;
-    let signupInFlight = false;
-    let loginInFlight = false;
-
-    const openSignup = () => {
+    openSignupBtn.onclick = () => {
       if (isOpen) return;
       isOpen = true;
       signupOverlay.classList.add("open");
@@ -186,27 +213,28 @@
       setTimeout(() => openSignupBtn?.focus(), 0);
     };
 
-    // 1클릭 즉시 오픈
-    openSignupBtn.onclick = openSignup;
     if (closeSignupBtn) closeSignupBtn.onclick = closeSignup;
     signupOverlay.onclick = closeSignup;
 
-    document.addEventListener("keydown", (e) => {
+    document.onkeydown = (e) => {
       if (e.key === "Escape" && isOpen) closeSignup();
-    }, { passive: true });
+    };
 
-    // ===== LOGIN =====
-    loginForm.addEventListener("submit", async (e) => {
+    // ===== 1클릭 1요청 가드 =====
+    let loginInFlight = false;
+    let signupInFlight = false;
+
+    // LOGIN
+    loginForm.onsubmit = async (e) => {
       e.preventDefault();
-      if (loginInFlight) return; // 연타 방지
+      if (loginInFlight) return;
       loginInFlight = true;
 
       setMsg(loginMsg, "로그인 중...", "");
       setBusy(loginBtn, true);
 
       const username = normalizeUsername(loginUsername?.value);
-      const passwordRaw = loginPassword?.value || "";
-      const password = normalizePassword(passwordRaw);
+      const password = normalizePassword(loginPassword?.value || "");
 
       if (!isValidUsername(username)) {
         setBusy(loginBtn, false);
@@ -214,6 +242,7 @@
         loginInFlight = false;
         return;
       }
+
       if (password.length < MIN_PASSWORD_LEN) {
         setBusy(loginBtn, false);
         setMsg(loginMsg, `비밀번호는 ${MIN_PASSWORD_LEN}자 이상이어야 합니다`, "err");
@@ -222,11 +251,8 @@
       }
 
       try {
-        // RPC: auth_email_for_username(p_username) -> text (필수)
-        const { data: email, error: rErr } = await sb.rpc("auth_email_for_username", {
-          p_username: username,
-        });
-
+        // username -> auth_email 조회 RPC (필수)
+        const { data: email, error: rErr } = await sb.rpc("auth_email_for_username", { p_username: username });
         if (rErr || !email) {
           console.warn("[luenAI][login] username lookup failed:", rErr);
           throw new Error("invalid");
@@ -244,27 +270,30 @@
         setBusy(loginBtn, false);
         loginInFlight = false;
       }
-    });
+    };
 
-    // ===== SIGNUP =====
-    signupForm.addEventListener("submit", async (e) => {
+    // SIGNUP
+    signupForm.onsubmit = async (e) => {
       e.preventDefault();
-      if (signupInFlight) return; // 더블클릭/연타 방지
+
+      // 쿨다운/비활성 중이면 요청 금지
+      if (signupBtn.disabled) return;
+
+      if (signupInFlight) return;
       signupInFlight = true;
 
       setMsg(signupMsg, "회원가입 중...", "");
       setBusy(signupBtn, true);
 
       const username = normalizeUsername(signupUsername?.value);
-      const passwordRaw = signupPassword?.value || "";
-      const password = normalizePassword(passwordRaw);
+      const password = normalizePassword(signupPassword?.value || "");
 
       const name = (signupName?.value || "").trim();
       const phone = (signupPhone?.value || "").trim();
       const bank = (signupBank?.value || "").trim();
       const account = (signupAccount?.value || "").trim();
 
-      // 1) 프론트 검증(정확)
+      // 프론트 검증(정확)
       if (!isValidUsername(username)) {
         setBusy(signupBtn, false);
         setMsg(signupMsg, "아이디 형식을 확인해주세요", "err");
@@ -289,24 +318,24 @@
       const authEmail = makeRandomEmail(); // 내부용(절대 노출 금지)
 
       try {
-        // 2) Auth 계정 생성
+        // Auth 계정 생성
         const { data, error } = await sb.auth.signUp({
           email: authEmail,
           password,
           options: { data: { username } },
         });
-
         if (error) throw error;
 
-        // Confirm email OFF 여야 session이 생김 (profiles insert를 본인 id로)
+        // Confirm email ON이면 여기서 세션이 없을 수 있음 → 가입 완료 처리가 막힘
+        // (이 경우도 email 단어 없이 안내)
         if (!data?.session || !data?.user?.id) {
-          console.warn("[luenAI][signup] no session/user after signUp. Check Confirm Email setting.");
-          throw new Error("no_session");
+          console.warn("[luenAI][signup] no session after signUp. Check Auth confirm settings.");
+          throw { status: 422, message: "no_session" };
         }
 
         const userId = data.user.id;
 
-        // 3) profiles insert (username UNIQUE로 중복 판정)
+        // profiles insert (username UNIQUE)
         const { error: pErr } = await sb.from("profiles").insert({
           id: userId,
           username,
@@ -314,7 +343,7 @@
           phone,
           bank,
           account,
-          auth_email: authEmail, // 로그인 매핑용(사용자 노출 금지)
+          auth_email: authEmail, // 로그인 매핑용(노출 금지)
         });
 
         if (pErr) {
@@ -323,6 +352,7 @@
           throw pErr;
         }
 
+        signupCooldown.resetBackoff();
         setMsg(signupMsg, "회원가입 완료! 로그인해 주세요.", "ok");
         if (loginUsername) loginUsername.value = username;
 
@@ -330,43 +360,39 @@
       } catch (err) {
         console.error("[luenAI][signup] error:", err);
 
-        // 429이면 쿨다운 적용
+        // 429만 쿨다운(백그라운드 요청 없음)
         if (isRateLimit(err)) {
-          startCooldown(signupBtn, signupMsg, 10);
+          signupCooldown.start(signupBtn, signupMsg);
+        } else if (String(err?.message || "") === "no_session") {
+          // 실제 원인 분리(이메일 단어 금지)
+          setMsg(signupMsg, "가입 설정을 확인해주세요. 관리자에게 문의해주세요.", "err");
+          setBusy(signupBtn, false);
         } else {
-          // 내부 원인(no_session 포함)은 사용자 메시지로 정확히
-          const raw = String(err?.message || "");
-          if (raw === "no_session") {
-            setMsg(signupMsg, "가입에 실패했습니다. 잠시 후 다시 시도해주세요", "err");
-          } else {
-            setMsg(signupMsg, mapSignupError(err), "err");
-          }
+          setMsg(signupMsg, mapSignupError(err), "err");
           setBusy(signupBtn, false);
         }
       } finally {
-        // 쿨다운이 아닌 경우에만 즉시 해제 (쿨다운은 자체 해제)
-        if (!signupBtn.disabled || !signupBtn.classList.contains("is-busy")) {
-          // noop (unlikely)
-        }
-        // inFlight 해제는 항상 즉시
         signupInFlight = false;
-        // 쿨다운 걸린 경우는 버튼이 disabled 상태로 유지됨(타이머가 해제)
-        if (!signupBtn.disabled) setBusy(signupBtn, false);
+        // 쿨다운이 걸리지 않은 경우에만 확실히 해제
+        if (!isRateLimit({ status: 429 }) && !signupBtn.disabled) setBusy(signupBtn, false);
+        // 위 줄은 안전장치로 남기되, 실제로는 catch에서 처리
       }
-    });
+    };
 
-    // Optional logout visibility
+    // logout
     const refreshSessionUI = async () => {
       const { data } = await sb.auth.getSession();
       const isLoggedIn = !!data?.session;
       if (logoutBtn) logoutBtn.style.display = isLoggedIn ? "inline-flex" : "none";
     };
 
-    logoutBtn?.addEventListener("click", async () => {
-      await sb.auth.signOut();
-      setMsg(loginMsg, "로그아웃 완료", "ok");
-      refreshSessionUI();
-    });
+    if (logoutBtn) {
+      logoutBtn.onclick = async () => {
+        await sb.auth.signOut();
+        setMsg(loginMsg, "로그아웃 완료", "ok");
+        refreshSessionUI();
+      };
+    }
 
     sb.auth.onAuthStateChange(() => refreshSessionUI());
     refreshSessionUI();

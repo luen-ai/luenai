@@ -649,6 +649,9 @@
 
  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
+const sb = window.luen.sb();   // ✅ 반드시 () 붙여야 '클라이언트'가 나옵니다
+const supabase = sb;           // ✅ 기존 코드가 supabase.from(...) 쓰는걸 그대로 살림
+  
 <script>
   /* =========================
     Supabase 연결
@@ -1666,6 +1669,7 @@ alert('로그아웃 되었습니다.');
 <script src="../shared/app.js"></script>
 </body>
 </html>
+
 
 
 

@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="../shared/theme.css" />
 
-  <!-- ✅ Favicon (user 폴더 기준) -->
+  <!-- ✅ Favicon (user 폴더 기준: 실제 파일이 없다면 404는 무시 가능) -->
   <link rel="icon" type="image/png" sizes="32x32" href="./favicon.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./favicon.png" />
   <link rel="apple-touch-icon" href="./favicon.png" />
@@ -14,7 +14,6 @@
 
   <style>
     * { box-sizing: border-box; }
-
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -25,7 +24,6 @@
       background: var(--bg0);
       padding: 18px 12px;
     }
-
     .wrapper {
       width: 100%;
       max-width: 420px;
@@ -35,8 +33,6 @@
       border: 1px solid var(--line);
       box-shadow: var(--shadow);
     }
-
-    /* ✅ 로고 이미지 */
     .brand {
       display: flex;
       flex-direction: column;
@@ -44,13 +40,6 @@
       gap: 10px;
       margin-bottom: 8px;
     }
-    .logo-img {
-      height: 44px;
-      width: auto;
-      object-fit: contain;
-      display: block;
-    }
-
     .logo {
       font-weight: 800;
       font-size: 18px;
@@ -63,21 +52,18 @@
       font-weight: 900;
       letter-spacing: 0.18em;
     }
-
     .subtitle {
       text-align: center;
       font-size: 13px;
       color: var(--muted);
       margin-bottom: 22px;
     }
-
     label {
       display: block;
       font-size: 13px;
       margin-bottom: 6px;
       color: var(--muted);
     }
-
     input {
       width: 100%;
       padding: 10px 12px;
@@ -88,20 +74,17 @@
       font-size: 14px;
       margin-bottom: 14px;
     }
-
     input:focus {
       outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.4);
-      background: #ffffff;
+      border-color: rgba(96,165,250,.7);
+      box-shadow: 0 0 0 2px rgba(96,165,250,.18);
+      background: #0f1720;
     }
-
     .btn-row {
       display: flex;
       gap: 10px;
       margin-top: 6px;
     }
-
     button {
       flex: 1;
       padding: 10px 0;
@@ -111,45 +94,31 @@
       font-weight: 600;
       cursor: pointer;
     }
-
     .btn-login {
       background: linear-gradient(135deg, var(--accent), var(--accent2));
       color: #0b0f14;
     }
-
     .btn-signup {
       background: #0f1720;
       color: var(--text);
       border: 1px solid var(--line);
     }
-
     .btn-login:hover { filter: brightness(1.03); }
-    .btn-signup:hover { background: #f3f4f6; }
-
+    .btn-signup:hover { filter: brightness(1.08); }
     .error {
       margin-top: 8px;
       font-size: 12px;
       color: #dc2626;
       min-height: 16px;
       text-align: center;
+      white-space: pre-line;
     }
-
-    /* Dark theme overrides */
-    body{ background: var(--bg0); color: var(--text); }
-    .wrapper{ background: var(--card); border:1px solid var(--line); box-shadow: var(--shadow); }
-    .subtitle{ color: var(--muted); }
-    label{ color: var(--muted); }
-    input{ background:#0f1720; border:1px solid var(--line); color: var(--text); }
-    input:focus{ border-color: rgba(96,165,250,.7); box-shadow: 0 0 0 2px rgba(96,165,250,.18); background:#0f1720; }
-    .btn-signup{ background:#0f1720; color: var(--text); border:1px solid var(--line); }
   </style>
 </head>
-<body>
 
+<body>
   <div class="wrapper">
-    <div class="brand">
-      
-    </div>
+    <div class="brand"></div>
     <div class="logo"><span>luen AI</span> PROCESSOR</div>
     <div class="subtitle">AI 투자 프로세서를 이용하려면 로그인이 필요합니다.</div>
 
@@ -167,67 +136,80 @@
     <div class="error" id="errorBox"></div>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="../shared/config.js"></script>
-<script src="../shared/sb.js"></script>
-<script>
-  // shared/sb.js 에서 생성됨
-  const sb = window.luenSb;
+  <!-- ✅ 로딩 순서 고정 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../shared/config.js"></script>
+  <script src="../shared/sb.js"></script>
+  <script src="../shared/app.js"></script>
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const loginId   = document.getElementById('loginId');
-    const loginPw   = document.getElementById('loginPw');
-    const errorBox  = document.getElementById('errorBox');
-    const btnLogin  = document.getElementById('btnLogin');
-    const btnSignup = document.getElementById('btnSignup');
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const loginId   = document.getElementById('loginId');
+      const loginPw   = document.getElementById('loginPw');
+      const errorBox  = document.getElementById('errorBox');
+      const btnLogin  = document.getElementById('btnLogin');
+      const btnSignup = document.getElementById('btnSignup');
 
-    async function login() {
-      const username = loginId.value.trim();
-      const password = loginPw.value.trim();
-      errorBox.textContent = '';
+      // ✅ 핵심: sb는 반드시 함수 호출로 "클라이언트"를 가져온다
+      const sb = (window.luen && typeof window.luen.sb === 'function')
+        ? window.luen.sb()
+        : null;
 
-      if (!username || !password) {
-        errorBox.textContent = '아이디와 비밀번호를 입력해주세요.';
+      if (!sb || typeof sb.from !== 'function') {
+        errorBox.textContent =
+          '초기화 오류: Supabase 연결이 준비되지 않았습니다.\n' +
+          'shared/config.js / shared/sb.js 로딩을 확인하세요.';
+        console.error('[LUEN] sb init failed:', sb);
         return;
       }
 
-      const { data, error } = await sb
-        .from('app_users')
-        .select('id, username, password_hash, approved, name, amount, bank_account, status, realized_amount')
-        .eq('username', username)
-        .eq('password_hash', password) // ⚠️ 테스트용(평문). 운영에서는 해시로.
-        .maybeSingle();
+      async function login() {
+        const username = (loginId.value || '').trim();
+        const password = (loginPw.value || '').trim();
+        errorBox.textContent = '';
 
-      if (error || !data) {
-        errorBox.textContent = '아이디 또는 비밀번호가 올바르지 않습니다.';
-        return;
+        if (!username || !password) {
+          errorBox.textContent = '아이디와 비밀번호를 입력해주세요.';
+          return;
+        }
+
+        const { data, error } = await sb
+          .from('app_users')
+          .select('id, username, password_hash, approved, name, amount, bank_account, status, realized_amount, role')
+          .eq('username', username)
+          .eq('password_hash', password) // ⚠️ 현재 구조: 테스트용 평문 비교
+          .maybeSingle();
+
+        if (error || !data) {
+          console.error('[login] error:', error);
+          errorBox.textContent = '아이디 또는 비밀번호가 올바르지 않습니다.';
+          return;
+        }
+
+        if (data.approved === false) {
+          errorBox.textContent = '관리자 승인 대기 중입니다.';
+          return;
+        }
+
+        // 로그인 상태 저장 (대시보드가 이 키를 읽도록 통일)
+        const safeUser = { ...data };
+        delete safeUser.password_hash;
+
+        localStorage.setItem('luenai_user_logged_in', 'true');
+        localStorage.setItem('luenai_current_user', JSON.stringify(safeUser));
+
+        window.location.href = 'dashboard.html';
       }
 
-      if (data.approved === false) {
-        errorBox.textContent = '관리자 승인 대기 중입니다.';
-        return;
-      }
+      btnLogin.addEventListener('click', login);
+      loginPw.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') login();
+      });
 
-      delete data.password_hash;
-      localStorage.setItem('luenai_user_logged_in', 'true');
-      localStorage.setItem('luenai_current_user', JSON.stringify(data));
-      window.location.href = 'dashboard.html';
-    }
-
-    btnLogin.addEventListener('click', login);
-    loginPw.addEventListener('keydown', e => {
-      if (e.key === 'Enter') login();
+      btnSignup.addEventListener('click', () => {
+        window.location.href = 'signup.html';
+      });
     });
-
-    btnSignup.addEventListener('click', () => {
-      window.location.href = 'signup.html';
-    });
-  });
-</script>
-
+  </script>
 </body>
 </html>
-
-
-
-

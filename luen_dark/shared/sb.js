@@ -13,15 +13,15 @@
   }
 
   // single client (avoid duplicate)
-  window.__neo_sb = window.__neo_sb || window.supabase.createClient(url, key);
-  window.neoSb = window.__neo_sb;
+  window.__luen_sb = window.__luen_sb || window.supabase.createClient(url, key);
+  window.luenSb = window.__luen_sb;
 
-  window.neoFmtWon = function (n) {
+  window.luenFmtWon = function (n) {
     const v = Number(n || 0);
     return v.toLocaleString('ko-KR') + '원';
   };
 
-  window.neoNowKST = function () {
+  window.luenNowKST = function () {
     return new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
   };
 })();

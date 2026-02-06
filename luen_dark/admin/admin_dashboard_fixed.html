@@ -1,0 +1,490 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>luen AI ADMIN - 회원 & 투자 관리</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../shared/theme.css" />
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      background: var(--bg0);
+      color: var(--text);
+    }
+
+    .sidebar {
+      width: 230px;
+      background: var(--card);
+      border-right: 1px solid var(--line);
+      padding: 20px 16px;
+      box-shadow: 8px 0 24px rgba(0,0,0,0.35);
+    }
+    .logo {
+      font-weight: 800;
+      font-size: 17px;
+      letter-spacing: 0.14em;
+      margin-bottom: 18px;
+    }
+    .logo span {
+      background: linear-gradient(120deg, #f97316, #ec4899);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+    .menu-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #9ca3af;
+      margin: 12px 6px 6px;
+    }
+    .nav-item {
+      display: block;
+      padding: 7px 10px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 13px;
+      margin: 2px 0;
+    }
+    .nav-item.active,
+    .nav-item:hover { background: #0f1720; border: 1px solid var(--line); }
+    .logout-admin {
+      margin-top: 24px;
+      font-size: 12px;
+      color: #6b7280;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .main {
+      flex: 1;
+      padding: 20px 22px 24px;
+    }
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .main-header h1 {
+      font-size: 18px;
+      margin: 0;
+    }
+    .main-header small {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 10px;
+      border-radius: 18px;
+      overflow: hidden;
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    thead { background: rgba(15,22,32,.9); }
+    th, td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(34,48,68,.7);
+      text-align: left;
+    }
+    th { color: var(--muted); font-weight: 700; }
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    input[type="number"] {
+      width: 110px;
+      padding: 4px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #0f1720;
+      color: var(--text);
+      font-size: 12px;
+    }
+    select {
+      padding: 4px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #0f1720;
+      color: var(--text);
+      font-size: 12px;
+    }
+    .btn-save-row {
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: none;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #0b0f14;
+    }
+    .btn-save-row:hover {
+      filter: brightness(1.03);
+    }
+    .note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+    .delta-wrap{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+    .delta-wrap .current{ font-weight:800; color: var(--text); min-width:90px; }
+    .btn-mini{ padding:6px 10px; border-radius:999px; border:1px solid var(--line); background:#0f1720; color: var(--text); font-size:12px; font-weight:800; cursor:pointer; }
+    .btn-mini.plus{ border-color: rgba(52,211,153,.5); }
+    .btn-mini.minus{ border-color: rgba(248,113,113,.5); }
+    .btn-mini:hover{ filter:brightness(1.08); }
+    .empty {
+      padding: 10px;
+      font-size: 13px;
+      text-align: center;
+      color: #9ca3af;
+    }
+  
+    .sortbar{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 10px;
+      border-radius:14px;
+      background: rgba(255,255,255,0.75);
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 10px 26px rgba(148, 163, 184, 0.25);
+    }
+    .sortlabel{ font-size:12px; color:#6b7280; font-weight:600; }
+    .sortselect{
+      padding:6px 10px;
+      border-radius:10px;
+      border:1px solid #d1d5db;
+      background:#f9fafb;
+      color:#111827;
+      font-size:12px;
+      min-width: 220px;
+    }
+    .btn-sort{
+      padding:7px 12px;
+      border-radius:999px;
+      border:none;
+      font-size:12px;
+      font-weight:700;
+      cursor:pointer;
+      background: linear-gradient(135deg, #f97316, #f59e0b);
+      color:#fff;
+      white-space:nowrap;
+    }
+    .btn-sort:hover{ filter: brightness(1.03); }
+
+    .btnAdj{
+      width:34px; height:34px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:#0f1720;
+      color:var(--text);
+      font-weight:900;
+      cursor:pointer;
+    }
+    .btnAdj.plus{ border-color: rgba(52,211,153,.35); }
+    .btnAdj.minus{ border-color: rgba(248,113,113,.35); }
+    .inpDeltaAmount, .inpDeltaRealized{
+      width:120px;
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#0f1720;
+      color:var(--text);
+      font-size:12px;
+    }
+
+    /* Dark theme overrides */
+    body{ background: var(--bg0); color: var(--text); }
+    .sidebar{ background: var(--card); border-right: 1px solid var(--line); box-shadow: none; }
+    .nav-item{ color: var(--text); }
+    .nav-item.active, .nav-item:hover{ background: rgba(96,165,250,.12); }
+    .menu-title, .main-header small, .note{ color: var(--muted); }
+    table{ background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow); }
+    thead{ background: rgba(15,22,32,.9); }
+    th, td{ border-bottom: 1px solid rgba(34,48,68,.7); }
+    th{ color: var(--muted); }
+    input[type="number"], select{ background: #0f1720; border: 1px solid var(--line); color: var(--text); }
+    .sortbar{ background: rgba(18,26,36,.85); border: 1px solid var(--line); }
+    .sortlabel{ color: var(--muted); }
+
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="logo"><span>luen AI</span><br />ADMIN</div>
+
+    <div class="menu-title">메인</div>
+    <a href="dashboard.html" class="nav-item active">회원 & 투자 관리</a>
+    <a href="admin-profit.html" class="nav-item">실현수익 증감</a>
+
+    <div class="logout-admin" id="btnAdminLogout">관리자 로그아웃</div>
+  </aside>
+
+  <main class="main">
+    <div class="main-header">
+      <div>
+        <h1>회원 & AI 투자 관리</h1>
+        <small>회원가입 승인과 <strong>AI투자중인 금액 / 실현 수익 / 진행 상태</strong>를 수정합니다.</small>
+      </div>
+
+      <div class="sortbar">
+        <span class="sortlabel">정렬</span>
+        <select id="sortSelect" class="sortselect">
+          <option value="created_at:asc" selected>가입순 (오래된 → 최신)</option>
+          <option value="created_at:desc">가입순 (최신 → 오래된)</option>
+          <option value="amount:desc">투자중인 금액순 (높은 → 낮은)</option>
+          <option value="amount:asc">투자중인 금액순 (낮은 → 높은)</option>
+        </select>
+        <button id="btnSortApply" type="button" class="btn-sort">적용</button>
+      </div>
+
+    </div>
+
+    <section>
+      <table>
+        <thead>
+          <tr>
+            <th>아이디</th>
+            <th>이름</th>
+            <th>휴대폰</th>
+            <th>투자중인 금액</th>
+            <th>금액 조정(원)</th>
+            <th>실현 수익</th>
+            <th>실현수익 조정(원)</th>
+            <th>진행 상태</th>
+            <th>승인 상태</th>
+            <th>저장</th>
+          </tr>
+        </thead>
+        <tbody id="userTbody">
+          <!-- JS에서 행 생성 -->
+        </tbody>
+      </table>
+
+      <div class="note">
+        · 금액은 숫자만 입력 (예: 50000 → 50,000원)<br />
+        · 진행 상태: <strong>대기중 / 진행중 / 진행 완료</strong><br />
+        · 승인 상태: <strong>승인 대기 / 승인 완료</strong><br />
+        · 관리자 계정은 users 테이블에서 role='admin' 으로 직접 관리합니다.
+      </div>
+    </section>
+  </main>
+
+  <!-- Supabase + 관리자 대시보드 로직 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../shared/config.js"></script>
+  <script src="../shared/sb.js"></script>
+  <script src="../shared/app.js"></script>
+  <script>
+    // shared/sb.js 에서 생성됨
+    // ✅ 반드시 ()로 '클라이언트'를 가져옵니다.
+    const sb = (window.luen && typeof window.luen.sb === 'function') ? window.luen.sb() : null;
+    if (!sb || typeof sb.from !== 'function') {
+      alert('Supabase 연결이 준비되지 않았습니다. shared/config.js → shared/sb.js → shared/app.js 로딩 순서를 확인하세요.');
+      throw new Error('[ADMIN] Supabase client not ready');
+    }
+
+    // 정렬 상태
+    let __sortKey = 'created_at';
+    let __sortAsc = true;
+
+function checkAdmin() {
+      const flag = localStorage.getItem('luenai_admin_logged_in');
+      if (flag !== 'true') {
+        alert('관리자 로그인이 필요합니다.');
+        window.location.href = 'login.html';
+      }
+    }
+
+    async function loadUsers() {
+      const tbody = document.getElementById('userTbody');
+      tbody.innerHTML = '';
+
+      try {
+        const { data, error } = await sb
+          .from('app_users')
+          .select('id, username, name, phone, amount, realized_amount, status, approved, role')
+          .neq('role', 'admin')         // 관리자 계정 제외
+          .order(__sortKey, { ascending: __sortAsc });
+
+        if (error || !data) {
+          const tr = document.createElement('tr');
+          const td = document.createElement('td');
+          td.colSpan = 10;
+          td.className = 'empty';
+          td.textContent = '회원 목록을 불러올 수 없습니다.';
+          tr.appendChild(td);
+          tbody.appendChild(tr);
+          return;
+        }
+
+        if (!data.length) {
+          const tr = document.createElement('tr');
+          const td = document.createElement('td');
+          td.colSpan = 10;
+          td.className = 'empty';
+          td.textContent = '등록된 회원이 없습니다.';
+          tr.appendChild(td);
+          tbody.appendChild(tr);
+          return;
+        }
+
+        data.forEach(user => {
+          const tr = document.createElement('tr');
+
+          tr.innerHTML = `
+            <td>${user.username || ''}</td>
+            <td>${user.name || ''}</td>
+            <td>${user.phone || ''}</td>
+
+            <td><strong>${Number(user.amount || 0).toLocaleString('ko-KR')}</strong></td>
+            <td>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <input type="number" inputmode="numeric" min="0" placeholder="예: 50000"
+                       data-id="${user.id}" class="inpDeltaAmount" />
+                <button type="button" class="btnAdj plus" data-kind="amount" data-sign="+" data-id="${user.id}">+</button>
+                <button type="button" class="btnAdj minus" data-kind="amount" data-sign="-" data-id="${user.id}">-</button>
+              </div>
+            </td>
+
+            <td><strong>${Number(user.realized_amount || 0).toLocaleString('ko-KR')}</strong></td>
+            <td>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <input type="number" inputmode="numeric" min="0" placeholder="예: 10000"
+                       data-id="${user.id}" class="inpDeltaRealized" />
+                <button type="button" class="btnAdj plus" data-kind="realized" data-sign="+" data-id="${user.id}">+</button>
+                <button type="button" class="btnAdj minus" data-kind="realized" data-sign="-" data-id="${user.id}">-</button>
+              </div>
+            </td>
+            <td>
+              <select data-id="${user.id}" class="selStatus">
+                <option value="대기중" ${user.status === '대기중' ? 'selected' : ''}>대기중</option>
+                <option value="진행중" ${user.status === '진행중' ? 'selected' : ''}>진행중</option>
+                <option value="진행 완료" ${user.status === '진행 완료' ? 'selected' : ''}>진행 완료</option>
+              </select>
+            </td>
+            <td>
+              <select data-id="${user.id}" class="selApproved">
+                <option value="false" ${!user.approved ? 'selected' : ''}>승인 대기</option>
+                <option value="true" ${user.approved ? 'selected' : ''}>승인 완료</option>
+              </select>
+            </td>
+            <td>
+              <button type="button" data-id="${user.id}" class="btn-save-row">저장</button>
+            </td>
+          `;
+
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error(e);
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 10;
+        td.className = 'empty';
+        td.textContent = '서버와 통신 중 오류가 발생했습니다.';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      }
+    }
+
+    // + / - 조정 버튼 & 저장 버튼
+    document.getElementById('userTbody').addEventListener('click', async (e) => {
+      const t = e.target;
+
+      // 금액/실현수익 +/-
+      if (t.classList.contains('btnAdj')) {
+        const id = t.getAttribute('data-id');
+        const kind = t.getAttribute('data-kind'); // amount | realized
+        const sign = t.getAttribute('data-sign'); // + | -
+
+        const inp = kind === 'amount'
+          ? document.querySelector('.inpDeltaAmount[data-id="' + id + '"]')
+          : document.querySelector('.inpDeltaRealized[data-id="' + id + '"]');
+
+        const raw = Number((inp?.value || '0').toString().replace(/,/g, ''));
+        if (!raw || raw <= 0) {
+          alert('조정할 금액(원)을 입력하세요.');
+          return;
+        }
+        const delta = sign === '+' ? raw : -raw;
+
+        try {
+          const fn = kind === 'amount' ? 'admin_adjust_amount' : 'admin_adjust_realized';
+          const { error } = await sb.rpc(fn, { p_user_id: id, p_delta: delta, p_note: 'admin-dashboard' });
+          if (error) {
+            console.error(error);
+            alert('적용 중 오류가 발생했습니다. (DB 함수/RLS 확인)');
+            return;
+          }
+          inp.value = '';
+          await loadUsers();
+        } catch (err) {
+          console.error(err);
+          alert('서버와 통신 중 오류가 발생했습니다.');
+        }
+        return;
+      }
+
+      // 상태/승인 저장
+      if (t.classList.contains('btn-save-row')) {
+        const id = t.getAttribute('data-id');
+        const statusSelect  = document.querySelector('.selStatus[data-id="' + id + '"]');
+        const approvedSelect= document.querySelector('.selApproved[data-id="' + id + '"]');
+
+        const status   = statusSelect.value;
+        const approved = approvedSelect.value === 'true';
+
+        const { error } = await sb
+          .from('app_users')
+          .update({ status, approved })
+          .eq('id', id);
+
+        if (error) {
+          console.error(error);
+          alert('저장 중 오류가 발생했습니다.');
+          return;
+        }
+        alert('저장되었습니다.');
+      }
+    });
+
+    document.getElementById('btnAdminLogout').addEventListener('click', () => {
+      localStorage.removeItem('luenai_admin_logged_in');
+      localStorage.removeItem('luenai_admin_user');
+      alert('관리자 로그아웃 되었습니다.');
+      window.location.href = 'login.html';
+    });
+
+
+
+    function applySortFromUI() {
+      const sel = document.getElementById('sortSelect');
+      if (!sel) return;
+      const v = (sel.value || 'created_at:asc').split(':');
+      __sortKey = v[0] || 'created_at';
+      __sortAsc = (v[1] || 'asc') === 'asc';
+    }
+
+    document.getElementById('btnSortApply').addEventListener('click', () => {
+      applySortFromUI();
+      loadUsers();
+    });
+
+    document.getElementById('sortSelect').addEventListener('change', () => {
+      // 즉시 반영 원하면 주석 해제
+      // applySortFromUI(); loadUsers();
+    });
+
+    checkAdmin();
+    loadUsers();
+  </script>
+</body>
+</html>

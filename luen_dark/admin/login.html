@@ -1,0 +1,177 @@
+
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>NEO AI ADMIN - 로그인</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../shared/theme.css" />
+  <style>
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;              /* ✅ 전체 높이 잡기 */
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at top, #fef3c7 0, #f9fafb 50%, #e5e7eb 100%);
+  }
+
+  .wrapper {
+    width: 100%;
+    max-width: 380px;
+    padding: 24px 22px 20px;
+    border-radius: 18px;
+    background: #ffffff;
+    border: 1px solid #fde68a;
+    box-shadow: 0 18px 45px rgba(250, 204, 21, 0.3);
+    margin: 0 auto;
+  }
+
+  .logo {
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 0.16em;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+
+  .logo span {
+    color: #111827;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+  }
+
+  .subtitle {
+    text-align: center;
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 18px;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 6px;
+    color: #374151;
+  }
+
+  input[type="text"],
+  input[type="password"] {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    color: #111827;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.4);
+    background: #ffffff;
+  }
+
+  button {
+    width: 100%;
+    padding: 10px 0;
+    border-radius: 999px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, #f97316, #f59e0b);
+    color: #f9fafb;
+  }
+
+  button:hover { filter: brightness(1.03); }
+
+  .error {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #dc2626;
+    min-height: 16px;
+    text-align: center;
+  }
+
+  .helper {
+    margin-top: 10px;
+    font-size: 11px;
+    color: #9ca3af;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="logo"><span>NEO AI</span> ADMIN</div>
+    <div class="subtitle">관리자 전용 로그인 화면입니다.</div>
+
+    <label for="adminId">관리자 아이디</label>
+    <input type="text" id="adminId" placeholder="admin" />
+
+    <label for="adminPw">관리자 비밀번호</label>
+    <input type="password" id="adminPw" placeholder="••••••••" />
+
+    <button id="btnAdminLogin">관리자 로그인</button>
+
+    <div class="error" id="errorBox"></div>
+    <div class="helper">관리자 계정은 Supabase users 테이블에서 role='admin' 으로 직접 생성합니다.</div>
+  </div>
+
+  <!-- Supabase + 관리자 로그인 로직 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../shared/config.js"></script>
+  <script src="../shared/sb.js"></script>
+  <script>
+    // shared/sb.js 에서 생성됨
+    const sb = window.neoSb;
+
+    async function adminLogin() {
+      const id = document.getElementById('adminId').value.trim();
+      const pw = document.getElementById('adminPw').value.trim();
+      const errorBox = document.getElementById('errorBox');
+      errorBox.textContent = '';
+
+      if (!id || !pw) {
+        errorBox.textContent = '아이디와 비밀번호를 입력해주세요.';
+        return;
+      }
+
+      try {
+        const { data, error } = await sb
+          .from('app_users')
+          .select('id, username, name, role, approved, status')
+          .eq('username', id)
+          .eq('password_hash', pw) // ⚠️ 현재는 테스트용(평문). 운영에서는 해시로 바꾸세요.
+          .eq('role', 'admin')
+          .single();
+
+        if (error || !data) {
+          errorBox.textContent = '관리자 아이디 또는 비밀번호가 올바르지 않습니다.';
+          return;
+        }
+
+        localStorage.setItem('neoai_admin_logged_in', 'true');
+        localStorage.setItem('neoai_admin_user', JSON.stringify(data));
+        window.location.href = 'dashboard.html';
+      } catch (e) {
+        console.error(e);
+        errorBox.textContent = '서버와 통신 중 오류가 발생했습니다.';
+      }
+    }
+
+    document.getElementById('btnAdminLogin').addEventListener('click', adminLogin);
+  </script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <!-- ✅ Favicon (user folder PNG 사용) -->
+<link rel="icon" type="image/png" href="./favicon.png">
+<link rel="apple-touch-icon" href="./favicon.png">
+  <meta charset="UTF-8" />
+  <title>NEO AI 프로세서 - 회원가입</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at top, #eef2ff 0, #f9fafb 45%, #e5e7eb 100%);
+    }
+    .wrapper {
+      width: 100%;
+      max-width: 480px;
+      padding: 26px 24px 22px;
+      border-radius: 18px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+    }
+    .logo {
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: 0.18em;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .logo span {
+      color: #111827;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 18px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+      color: #374151;
+    }
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      color: #111827;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    input:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.4);
+      background: #ffffff;
+    }
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    button {
+      flex: 1;
+      padding: 10px 0;
+      border-radius: 999px;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-submit {
+      background: linear-gradient(135deg, #6366f1, #0ea5e9);
+      color: #f9fafb;
+    }
+    .btn-cancel {
+      background: #ffffff;
+      color: #111827;
+      border: 1px solid #d1d5db;
+    }
+    .btn-submit:hover { filter: brightness(1.03); }
+    .btn-cancel:hover { background: #f3f4f6; }
+    .error {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #dc2626;
+      min-height: 16px;
+      text-align: center;
+    }
+    .info {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #6b7280;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="logo"><span>NEO AI</span> PROCESSOR</div>
+    <div class="subtitle">AI 투자 프로세스를 이용하기 위한 회원가입 페이지입니다.</div>
+
+    <label for="username">아이디</label>
+    <input type="text" id="username" placeholder="로그인에 사용할 아이디" />
+
+    <label for="password">비밀번호</label>
+    <input type="password" id="password" placeholder="비밀번호" />
+
+    <label for="password2">비밀번호 확인</label>
+    <input type="password" id="password2" placeholder="비밀번호를 한 번 더 입력" />
+
+    <label for="name">이름</label>
+    <input type="text" id="name" placeholder="실명 기준으로 입력" />
+
+    <label for="phone">휴대폰 번호</label>
+    <input type="text" id="phone" placeholder="예: 01012345678" />
+
+    <label for="bankAccount">출금 계좌</label>
+    <input type="text" id="bankAccount" placeholder="은행 / 계좌번호 형식으로 입력 (예: 국민 123456-01-123456)" />
+
+    <div class="info">
+      · 회원가입 후에는 <strong>관리자 승인</strong> 이후부터 로그인이 가능합니다.<br />
+      · 출금 계좌는 추후 출금 요청 시 본인 확인용으로 사용됩니다.
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-submit" id="btnSubmit">회원가입 완료</button>
+      <button class="btn-cancel" id="btnCancel">취소</button>
+    </div>
+
+    <div class="error" id="errorBox"></div>
+  </div>
+
+  <!-- Supabase + 회원가입 로직 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    const supabaseUrl = 'https://uvwturgomovjvokojtkp.supabase.co';
+    const supabaseKey = 'sb_publishable_a6k4T2_-ksuHVUvCduUlCQ_DtoR9R4F';
+    
+
+    // ✅ 페이지/스크립트 중복 로드에도 안전한 싱글톤 클라이언트
+    if (!window.supabase || !window.supabase.createClient) {
+      alert('Supabase 라이브러리가 로드되지 않았습니다. (script src 확인 필요)');
+      throw new Error('Supabase library missing');
+    }
+
+    window.__neoai_sb = window.__neoai_sb || window.supabase.createClient(supabaseUrl, supabaseKey);
+    const sb = window.__neoai_sb;
+
+async function signup() {
+      const username = document.getElementById('username').value.trim();
+      const pw = document.getElementById('password').value.trim();
+      const pw2 = document.getElementById('password2').value.trim();
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const bankAccount = document.getElementById('bankAccount').value.trim();
+      const errorBox = document.getElementById('errorBox');
+      errorBox.textContent = '';
+
+      if (!username || !pw || !pw2 || !name || !phone || !bankAccount) {
+        errorBox.textContent = '모든 항목을 입력해주세요.';
+        return;
+      }
+      if (pw !== pw2) {
+        errorBox.textContent = '비밀번호가 서로 일치하지 않습니다.';
+        return;
+      }
+
+      try {
+        // 아이디 중복 체크
+        const { data: exists } = await sb
+          .from('users')
+          .select('id')
+          .eq('username', username)
+          .maybeSingle();
+
+        if (exists) {
+          errorBox.textContent = '이미 사용중인 아이디입니다.';
+          return;
+        }
+
+        const { error } = await sb
+          .from('users')
+          .insert({
+            username,
+            password: pw,
+            name,
+            phone,
+            bank_account: bankAccount,
+            amount: 0,
+            status: '대기중',   // 기본 상태: 대기중
+            approved: false,
+            role: 'user'
+          });
+
+        if (error) {
+          console.error(error);
+          errorBox.textContent = '회원가입 중 오류가 발생했습니다.';
+          return;
+        }
+
+        alert('회원가입이 완료되었습니다. 관리자 승인 후 로그인할 수 있습니다.');
+        window.location.href = 'index.html';
+      } catch (e) {
+        console.error(e);
+        errorBox.textContent = '서버와 통신 중 오류가 발생했습니다.';
+      }
+    }
+
+    document.getElementById('btnSubmit').addEventListener('click', signup);
+    document.getElementById('btnCancel').addEventListener('click', () => {
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>
+

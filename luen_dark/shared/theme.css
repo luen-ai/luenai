@@ -1,0 +1,88 @@
+:root{
+  --bg0:#0b0f14;
+  --bg1:#0f1620;
+  --card:#121a24;
+  --line:#223044;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --accent:#60a5fa;
+  --accent2:#a78bfa;
+  --good:#34d399;
+  --bad:#f87171;
+  --warn:#fbbf24;
+  --shadow:0 18px 45px rgba(0,0,0,.45);
+}
+
+*{box-sizing:border-box;}
+html,body{height:100%;}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background: var(--bg0);
+  color: var(--text);
+}
+
+a{color:inherit;}
+
+.neo-card{
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+
+.neo-input{
+  width:100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #0f1720;
+  color: var(--text);
+  font-size: 14px;
+}
+.neo-input:focus{
+  outline:none;
+  border-color: rgba(96,165,250,.7);
+  box-shadow: 0 0 0 2px rgba(96,165,250,.18);
+}
+
+.neo-btn{
+  border:none;
+  cursor:pointer;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 800;
+  color: #0b0f14;
+  background: linear-gradient(135deg,var(--accent),var(--accent2));
+}
+.neo-btn.secondary{
+  background: #0f1720;
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+.neo-btn.danger{
+  background: linear-gradient(135deg,#fb7185,var(--bad));
+}
+.neo-btn:disabled{opacity:.55; cursor:not-allowed;}
+
+.neo-muted{color: var(--muted);}
+
+.neo-table{
+  width:100%;
+  border-collapse: collapse;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow:hidden;
+}
+.neo-table th,
+.neo-table td{
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(34,48,68,.7);
+  text-align:left;
+  font-size: 13px;
+}
+.neo-table thead{background: rgba(15,22,32,.9);}
+.neo-table th{color: var(--muted); font-weight: 700;}
+.neo-table tr:last-child td{border-bottom:none;}

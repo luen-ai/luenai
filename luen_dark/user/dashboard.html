@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>NEO AI 프로세서 - 대시보드</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="icon" type="image/png" href="./favicon.png" />
+  <link rel="apple-touch-icon" href="./favicon.png" />
+
+  <style>
+    * { box-sizing: border-box; }
+
+    @font-face {
+      font-family: 'SUIT-Regular';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Regular.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'SUIT-Regular', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+      color: #0f172a;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(129, 140, 248, 0.25), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(52, 211, 153, 0.2), transparent 55%),
+        linear-gradient(135deg, #eef2ff, #fefce8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 18px 12px 28px;
+    }
+
+    .shell { width: 100%; max-width: 1000px; }
+
+    .frame {
+      border-radius: 26px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 20px 60px rgba(148, 163, 184, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.8);
+      padding: 18px 20px 22px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-weight: 800;
+      font-size: 19px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #111827;
+      user-select: none;
+    }
+    .logo span {
+      color: #4f46e5;
+      font-weight: 900;
+      letter-spacing: 0.24em;
+    }
+
+    .nav {
+      display: flex;
+      gap: 8px;
+      font-size: 14px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .nav button {
+      padding: 7px 15px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background: #f3f4f6;
+      color: #111827;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.16s ease;
+    }
+    .nav button.active {
+      background: #111827;
+      color: #f9fafb;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.35);
+      transform: translateY(-1px);
+    }
+    .nav button:hover:not(.active) { background: #e5e7eb; }
+
+    .card {
+      border-radius: 20px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 16px 40px rgba(148, 163, 184, 0.25);
+      padding: 18px 18px 18px;
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      color: #111827;
+    }
+
+    .section-sub {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 14px;
+    }
+
+    .value-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 6px;
+    }
+
+    .value-box {
+      flex: 1;
+      min-width: 180px;
+      padding: 14px 14px;
+      border-radius: 16px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .value-label {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    /* ✅ 타임라인 */
+    .timeline-item{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid #e5e7eb;
+      background:#f9fafb;
+    }
+    .timeline-left{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      min-width:0;
+    }
+    .timeline-time{
+      font-size:12px;
+      color:#6b7280;
+    }
+    .timeline-msg{
+      font-size:13px;
+      font-weight:800;
+      color:#111827;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .timeline-delta{
+      font-size:13px;
+      font-weight:900;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid transparent;
+      white-space:nowrap;
+    }
+    .timeline-up{ background:#fee2e2; color:#dc2626; border-color:#fecaca; }
+    .timeline-down{ background:#dbeafe; color:#2563eb; border-color:#bfdbfe; }
+    .timeline-same{ background:#e5e7eb; color:#6b7280; border-color:#d1d5db; }
+
+    /* ✅ 숫자+배지 분리 */
+    .value-main {
+      font-size: 22px;
+      font-weight: 900;
+      color: #111827;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+    .value-main .num { display:inline-block; }
+    .value-main .badge { display:inline-flex; }
+
+    .amount-positive {
+      color: #059669;
+      font-weight: 900;
+      text-shadow: 0 0 4px rgba(16, 185, 129, 0.25);
+    }
+    .amount-muted { color: #4b5563; }
+
+    /* ✅ 펄스 */
+    .pulse-up { animation: pulseUp 700ms ease-out 1; }
+    .pulse-down { animation: pulseDown 700ms ease-out 1; }
+    @keyframes pulseUp {
+      0%   { filter: drop-shadow(0 0 0 rgba(239,68,68,0.0)); transform: translateY(0); }
+      30%  { filter: drop-shadow(0 0 14px rgba(239,68,68,0.35)); transform: translateY(-1px); }
+      100% { filter: drop-shadow(0 0 0 rgba(239,68,68,0.0)); transform: translateY(0); }
+    }
+    @keyframes pulseDown {
+      0%   { filter: drop-shadow(0 0 0 rgba(59,130,246,0.0)); transform: translateY(0); }
+      30%  { filter: drop-shadow(0 0 14px rgba(59,130,246,0.35)); transform: translateY(-1px); }
+      100% { filter: drop-shadow(0 0 0 rgba(59,130,246,0.0)); transform: translateY(0); }
+    }
+
+    /* ✅ 카드 글로우 */
+    .cardGlowUp { animation: cardGlowUp 700ms ease-out 1; }
+    .cardGlowDown { animation: cardGlowDown 700ms ease-out 1; }
+    @keyframes cardGlowUp {
+      0%{ box-shadow: 0 16px 40px rgba(148,163,184,0.25); }
+      40%{ box-shadow: 0 18px 55px rgba(239,68,68,0.25); }
+      100%{ box-shadow: 0 16px 40px rgba(148,163,184,0.25); }
+    }
+    @keyframes cardGlowDown {
+      0%{ box-shadow: 0 16px 40px rgba(148,163,184,0.25); }
+      40%{ box-shadow: 0 18px 55px rgba(59,130,246,0.25); }
+      100%{ box-shadow: 0 16px 40px rgba(148,163,184,0.25); }
+    }
+
+    /* ✅ 스윕 */
+    .sweep-up::after,
+    .sweep-down::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      transform: translateX(-120%);
+      animation: sweep 700ms ease 1;
+      pointer-events:none;
+    }
+    .sweep-up::after{ background: linear-gradient(90deg, transparent, rgba(239,68,68,.22), transparent); }
+    .sweep-down::after{ background: linear-gradient(90deg, transparent, rgba(59,130,246,.22), transparent); }
+    @keyframes sweep { to { transform: translateX(120%); } }
+
+    /* ✅ 스켈레톤 */
+    .skeleton::after{
+      content:'';
+      position:absolute;
+      inset:0;
+      background: linear-gradient(90deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.55) 50%,
+        rgba(255,255,255,0) 100%);
+      transform: translateX(-100%);
+      animation: shimmer 1.1s infinite;
+      pointer-events:none;
+    }
+    @keyframes shimmer{
+      0%{ transform: translateX(-100%); }
+      100%{ transform: translateX(100%); }
+    }
+
+    /* ✅ 미니 배지 */
+    .delta-badge{
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 900;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transform: translateY(-1px);
+      white-space: nowrap;
+      user-select: none;
+    }
+    .delta-up{ background:#fee2e2; color:#dc2626; border-color:#fecaca; }
+    .delta-down{ background:#dbeafe; color:#2563eb; border-color:#bfdbfe; }
+    .delta-same{ background:#e5e7eb; color:#6b7280; border-color:#d1d5db; }
+
+    /* ✅ 상태 배지 */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      gap: 6px;
+    }
+    .status-dot { width: 7px; height: 7px; border-radius: 999px; }
+    .status-wait { background: #fef3c7; color: #92400e; border: 1px solid #facc15; }
+    .status-wait .status-dot { background: #facc15; }
+    .status-run  { background: #dcfce7; color: #166534; border: 1px solid #22c55e; }
+    .status-run  .status-dot { background: #22c55e; }
+    .status-done { background: #e5e7eb; color: #374151; border: 1px solid #9ca3af; }
+    .status-done .status-dot { background: #6b7280; }
+
+    .info-text {
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 10px;
+      line-height: 1.6;
+    }
+
+    /* ✅ 진행 단계 */
+    .steps-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+    .step { flex:1; min-width:160px; padding:10px 11px; border-radius:14px; border:1px solid #e5e7eb; background:#f9fafb; font-size:12px; color:#4b5563; position:relative; }
+    .step-title { font-size:13px; font-weight:800; margin-bottom:4px; color:#111827; }
+    .step-tag { position:absolute; top:8px; right:10px; font-size:10px; padding:2px 7px; border-radius:999px; background:#fff; border:1px solid #e5e7eb; color:#6b7280; }
+    .step.active { border-color:#4f46e5; box-shadow: 0 0 0 1px rgba(79,70,229,0.25); background:#eef2ff; }
+    .step.active .step-tag { background:#4f46e5; border-color:#4f46e5; color:#e5e7eb; }
+
+    /* ✅ 카드 헤더 */
+    .card-head-row{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
+    .mini-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .last-updated{ font-size:12px; color:#6b7280; }
+    .btn-refresh{ border:none; background:#f3f4f6; color:#111827; border-radius:999px; padding:6px 10px; font-size:12px; cursor:pointer; }
+    .btn-refresh:hover{ background:#e5e7eb; }
+
+    .toggle{
+      display:inline-flex;
+      background:#f3f4f6;
+      border:1px solid #e5e7eb;
+      border-radius:999px;
+      padding:3px;
+      gap:3px;
+    }
+    .toggle button{
+      border:none;
+      background:transparent;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      cursor:pointer;
+      color:#374151;
+      font-weight:900;
+    }
+    .toggle button.active{
+      background:#111827;
+      color:#fff;
+      box-shadow: 0 8px 18px rgba(15,23,42,0.18);
+    }
+
+    .error-inline{ margin-top:10px; font-size:12px; color:#b91c1c; display:none; }
+    .error-inline.show{ display:block; }
+
+    .chart-wrap{ margin-top:12px; padding:12px; border-radius:16px; border:1px solid #e5e7eb; background:#ffffff; }
+    .chart-title-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
+    .chart-title{ font-size:13px; font-weight:900; color:#111827; }
+    canvas{ width:100%; height:120px; display:block; }
+
+    /* ✅ 소개 */
+    .intro-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 18px; }
+    @media (max-width: 720px) { .intro-grid { grid-template-columns: minmax(0, 1fr); } }
+    .intro-badge { display:inline-flex; padding:4px 11px; border-radius:999px; font-size:11px; background:#eef2ff; color:#4f46e5; margin-bottom:10px; }
+    .intro-title { font-size:18px; font-weight:900; margin-bottom:8px; color:#111827; }
+    .intro-text { font-size:14px; color:#4b5563; line-height:1.7; white-space:pre-line; }
+    .intro-box { padding:12px; border-radius:16px; background:#f9fafb; border:1px solid #e5e7eb; margin-top:10px; }
+    .intro-box-title { font-size:14px; font-weight:800; margin-bottom:6px; color:#111827; }
+    .intro-points { font-size:13px; color:#374151; list-style:none; padding:0; margin:0; }
+    .intro-points li { margin-bottom:6px; }
+    .scenario-highlight { font-weight:900; color:#4f46e5; }
+
+    /* ✅ 내 정보 */
+    .account-grid { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:10px; font-size:13px; }
+    @media (max-width: 720px) { .account-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    .acct-label { font-size:12px; color:#6b7280; margin-bottom:2px; }
+    .acct-value { font-size:14px; font-weight:600; color:#111827; }
+    .account-header-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:10px; }
+    .btn-gear { border:none; background:#f3f4f6; border-radius:999px; padding:5px 8px; font-size:11px; cursor:pointer; color:#4b5563; }
+    .btn-gear:hover { background:#e5e7eb; }
+
+    /* ✅ 모달 */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.35);
+      display: flex; justify-content: center; align-items: center; z-index: 50;
+    }
+    .modal {
+      width: 100%; max-width: 360px; background: #ffffff; border-radius: 18px;
+      padding: 18px 18px 16px; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.45);
+      border: 1px solid #e5e7eb;
+    }
+    .modal-title { font-size: 16px; font-weight: 900; margin-bottom: 10px; }
+    .modal label { display: block; font-size: 13px; margin-top: 10px; margin-bottom: 4px; color: #374151; }
+    .modal input {
+      width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid #d1d5db;
+      background: #f9fafb; font-size: 13px;
+    }
+    .modal input:focus { outline:none; border-color:#6366f1; box-shadow:0 0 0 1px rgba(99, 102, 241, 0.4); background:#fff; }
+    .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }
+    .btn-secondary, .btn-primary { border-radius:999px; border:none; font-size:13px; padding:7px 14px; cursor:pointer; }
+    .btn-secondary { background:#f3f4f6; color:#374151; }
+    .btn-primary { background: linear-gradient(135deg, #6366f1, #0ea5e9); color:#f9fafb; font-weight:900; }
+
+    .hidden { display:none; }
+
+    @media (max-width: 640px) {
+      .topbar { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .nav { width: 100%; justify-content: space-between; }
+      .value-row { flex-direction: column; }
+      canvas { height: 140px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+    <div class="frame">
+      <header class="topbar">
+        <div class="logo"><span>NEO AI</span> PROCESSOR</div>
+        <nav class="nav">
+          <button id="tabStatus" class="active" type="button">AI 투자현황</button>
+          <button id="tabIntro" type="button">소개</button>
+          <button id="tabAccount" type="button">내 정보</button>
+          <button id="btnLogout" type="button">로그아웃</button>
+        </nav>
+      </header>
+
+      <!-- 1) AI 투자현황 -->
+      <section id="sectionStatus" class="card">
+        <div class="section-title">AI 투자현황</div>
+        <div class="section-sub" id="nameLine"></div>
+
+        <div class="value-row">
+          <div class="value-box" id="boxTopAmount">
+            <div class="value-label">AI투자중인 금액</div>
+            <div class="value-main" id="amountText">
+              <span class="num" id="amountNum">- 원</span>
+              <span class="badge" id="amountBadge"></span>
+            </div>
+          </div>
+          <div class="value-box" id="boxTopStatus">
+            <div class="value-label">진행 상태</div>
+            <div id="statusBadge"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2) 실시간 수익 현황 -->
+      <section id="sectionRealtime" class="card">
+        <div class="card-head-row">
+          <div>
+            <div class="section-title" style="margin-bottom:0;">실시간 수익 현황</div>
+            <div class="section-sub" style="margin-bottom:0;">
+              네오 AI 투자 프로세서 기준, 현재 세션의 실시간 금액 정보입니다.
+            </div>
+          </div>
+
+          <div class="mini-actions">
+            <div class="toggle" aria-label="수익 토글">
+              <button id="toggleToday" class="active" type="button">오늘 수익</button>
+              <button id="toggleTotal" type="button">누적 수익</button>
+            </div>
+            <span class="last-updated" id="lastUpdatedText">마지막 업데이트: -</span>
+            <button class="btn-refresh" id="btnRefresh" type="button">재조회</button>
+          </div>
+        </div>
+
+        <div class="value-row">
+          <div class="value-box" id="boxInvest">
+            <div class="value-label">투자중인 금액</div>
+            <div class="value-main amount-muted">
+              <span class="num" id="amountInvestNum">- 원</span>
+              <span class="badge" id="amountInvestBadge"></span>
+            </div>
+          </div>
+
+          <div class="value-box" id="boxRealized">
+            <div class="value-label" id="realizedLabel">수익 (오늘)</div>
+            <div class="value-main amount-muted">
+              <span class="num" id="realizedNum">- 원</span>
+              <span class="badge" id="realizedBadge"></span>
+            </div>
+          </div>
+
+          <div class="value-box" id="boxTotal">
+            <div class="value-label">총 금액 (투자중 + 실현)</div>
+            <div class="value-main amount-muted">
+              <span class="num" id="totalNum">- 원</span>
+              <span class="badge" id="totalBadge"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <div class="chart-title-row">
+            <div class="chart-title" id="chartTitle">실시간 수익 그래프 (오늘)</div>
+            <span class="last-updated" id="chartHint">최근 데이터 기준</span>
+          </div>
+          <canvas id="profitChart" width="920" height="160"></canvas>
+        </div>
+
+        <!-- ✅ 수익 로그 -->
+        <div class="chart-wrap" style="margin-top:12px;">
+          <div class="chart-title-row">
+            <div class="chart-title" id="timelineTitle">수익 로그 (오늘)</div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="last-updated" id="timelineHint">최근 기록</span>
+              <button id="btnToggleTimeline" class="btn-refresh" type="button">펼치기</button>
+            </div>
+          </div>
+          <div id="profitTimeline" style="display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+
+        <div class="info-text">
+          오늘 수익은 <b>00시</b> 기준으로 계산됩니다.
+        </div>
+
+        <div class="error-inline" id="realtimeError">
+          조회 실패: 네트워크/권한/테이블 컬럼을 확인해주세요.
+          <button class="btn-refresh" id="btnRetryInline" type="button">다시 시도</button>
+        </div>
+      </section>
+
+      <!-- 3) AI 세션 진행 단계 -->
+      <section id="sectionStatusExtra" class="card">
+        <div class="section-title">AI 세션 진행 단계</div>
+        <div class="section-sub">네오AI는 아래 3단계를 거쳐 세션을 운용합니다.</div>
+
+        <div class="steps-row">
+          <div class="step" data-step="wait">
+            <div class="step-title">1단계 · 대기중</div>
+            <div class="step-tag">READY</div>
+            <div>투자금 확정 전 단계입니다.<br/>투자가 확정되면 다음 단계로 이동합니다.</div>
+          </div>
+          <div class="step" data-step="run">
+            <div class="step-title">2단계 · 진행중</div>
+            <div class="step-tag">RUNNING</div>
+            <div>설정된 금액에 맞춰 AI가 분산 투자를 수행하는 구간입니다.<br/>포트폴리오 구성과 비중 조정이 자동으로 이뤄집니다.</div>
+          </div>
+          <div class="step" data-step="done">
+            <div class="step-title">3단계 · 진행 완료</div>
+            <div class="step-tag">COMPLETE</div>
+            <div>투자 운용이 완료된 상태입니다.<br/>수익 정산을 준비합니다.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 소개 -->
+      <section id="sectionIntro" class="card hidden">
+        <div class="intro-badge">AI 기반 자동 투자 프로세스</div>
+         <div class="intro-grid">
+          <div>
+            <div class="intro-title">네오AI, 스스로 판단하고 분산 투자하는 인공지능</div>
+            <p class="intro-text"> 
+              네오AI는 대량의 시장 데이터와 딥러닝 알고리즘을 활용해 시장 흐름을 분석하고, 여러 종목과 자산군에 자동으로 분산 투자하는 AI 투자 프로세서입니다.
+              사용자는 투자 금액만 정하면, AI가 포트폴리오 구성부터 리스크 관리까지 전 과정을 자동으로 수행하도록 설계되어 있습니다.
+              </p>
+            <div class="intro-box">
+              <div class="intro-box-title">AI가 하는 일</div>
+              <ul class="intro-points">
+                <li>· 경제 지표, 뉴스, 시황 데이터를 종합적으로 스캔</li> 
+                <li>· 최대 30개 내외 종목으로 포트폴리오 자동 구성</li> 
+                <li>· 최소 1일 ~ 최대 30일 단위로 세션 운용</li> 
+                <li>· 손익·변동성 데이터를 기반으로 전략을 반복 학습</li>
+              </ul> 
+            </div> 
+          </div> 
+           <div> 
+             <div class="intro-box">
+               <div class="intro-box-title">투자 예시 시나리오 (전문 운영 관점)</div> 
+               <p class="intro-text" style="margin-top:4px;">
+                 <span class="scenario-highlight">예시 · 50,000원을 AI에 맡기는 경우</span>
+                 1) <strong>세션 설정</strong> 
+                 · 유저가 50,000원을 투자하고, 약 1일 ~ 최대 30일 AI에게 맡깁니다. 
+                 · "진행중" 상태로 전환되며, 네오AI는 해당 금액을 운용대상으로 인식합니다.
+                 2) <strong>시장·종목 스캔</strong> 
+                 · 네오AI는 최근 수 시간~30일간의 가격 흐름, 거래량, 변동성, 뉴스·이슈 등 데이터를 수집합니다. 
+                 · 과거 학습 데이터와 현재 시장 상황을 비교해, 효율이 높은 섹터·종목을 선별합니다.
+                 3) <strong>포트폴리오 구성</strong> 
+                 · 전체 50,000원 중 일부는 기본 안전 구간, 일부는 공격 구간으로 나누어 비중을 설정합니다. 
+                 · 예를 들어, 변동성이 낮은 자산 60% + 변동성이 높은 자산 40% 조합으로 10~20개 내외 종목을 선정할 수 있습니다. 
+                 · 각 종목별 예상 수익·리스크에 따라 비중이 자동으로 조정됩니다. 
+                 4) <strong>세션 중 리스크 관리</strong> 
+                 · 운용 구간 동안 실시간 가격 변화를 모니터링하며, 사전 설정된 손실 한도 또는 급격한 변동이 발생할 경우 비중을 축소하거나 현금 비중을 늘립니다. 
+                 · 과도한 집중이 발생하지 않도록, 종목당·섹터당 비중 상한을 유지합니다. 
+                 5) <strong>세션 종료 및 정산</strong> 
+                 · 운용 구간이 종료되면, 해당 세션은 "진행 완료" 상태로 전환됩니다. 
+                 · 포트폴리오 전체 평가금액이 계산되고, 수익 결과가 정리됩니다. 
+                 · 이때의 성과 데이터는 다음 세션의 전략 고도화에 사용되며, 어떤 조건·종목 조합이 유리했는지 재학습에 반영됩니다. 
+                 
+                 이 과정에서 유저는 투자 금액과 세션 운용 여부만 확인하고, 실제 종목 선택·비중 조정·리스크 관리는 모두 네오AI가 담당하는 구조입니다.
+                 </p> 
+             </div> 
+             
+             <div class="intro-box" style="margin-top:10px;"> <div class="intro-box-title">이런 분께 적합합니다</div> 
+               <ul class="intro-points"> 
+                 <li>· 세부 종목 선택보다는 전체 전략·결과에 집중하고 싶은 분</li> 
+                 <li>· 단기 구간별(1일 ~ 최대 30일) 운용을 선호하는 분</li> 
+                 <li>· AI 기반 의사결정과 분산 투자를 한 번에 경험해 보고 싶은 분</li> 
+               </ul> 
+             </div> 
+           </div> 
+         </div> 
+      </section>
+                
+              
+      <!-- 내 정보 -->
+      <section id="sectionAccount" class="card hidden">
+        <div class="account-header-row">
+          <div>
+            <div class="section-title">내 정보</div>
+            <div class="section-sub">네오 AI 투자 프로세서에서 사용하는 기본 회원 정보입니다.</div>
+          </div>
+          <button class="btn-gear" id="btnOpenSettings" type="button">⚙ 설정</button>
+        </div>
+
+        <div class="account-grid">
+          <div><div class="acct-label">이름</div><div class="acct-value" id="acctName">-</div></div>
+          <div><div class="acct-label">아이디</div><div class="acct-value" id="acctUsername">-</div></div>
+          <div><div class="acct-label">휴대폰</div><div class="acct-value" id="acctPhone">-</div></div>
+          <div><div class="acct-label">투자중인 금액</div><div class="acct-value" id="acctAmount">-</div></div>
+          <div><div class="acct-label">수익 실현중인 금액</div><div class="acct-value" id="acctRealized">-</div></div>
+          <div><div class="acct-label">출금 계좌</div><div class="acct-value" id="acctBank">-</div></div>
+        </div>
+
+        <div class="info-text" style="margin-top:12px;">
+          출금 계좌는 본인 확인 및 출금 처리 시에만 사용되며, 관리자 페이지에서만 조회·관리됩니다.
+        </div>
+      </section>
+
+      <!-- 설정 모달 (✅ 반드시 hidden 시작) -->
+      <div id="settingsModal" class="modal-backdrop hidden">
+        <div class="modal">
+          <div class="modal-title">내 정보 수정</div>
+          <p class="section-sub" style="margin-bottom:4px;">
+            비밀번호와 출금 계좌 정보를 변경할 수 있습니다.
+          </p>
+
+          <label for="editPassword">새 비밀번호</label>
+          <input type="password" id="editPassword" placeholder="변경하지 않으려면 비워두세요" />
+
+          <label for="editBank">출금 계좌</label>
+          <input type="text" id="editBank" placeholder="예: 국민 123456-01-123456" />
+
+          <div class="modal-actions">
+            <button class="btn-secondary" id="btnCancelSettings" type="button">취소</button>
+            <button class="btn-primary" id="btnSaveSettings" type="button">저장하기</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<script>
+  /* =========================
+    Supabase 연결
+  ========================= */
+  const supabaseUrl = 'https://uvwturgomovjvokojtkp.supabase.co';
+  const supabaseKey = 'sb_publishable_a6k4T2_-ksuHVUvCduUlCQ_DtoR9R4F';
+
+  
+
+  
+
+  // ✅ Supabase 클라이언트 싱글톤 (중복 선언 방지)
+  window.sb = window.sb || window.supabase.createClient(supabaseUrl, supabaseKey);
+  var sb = window.sb; // var 사용으로 재선언 안전
+
+  // ✅ 기존 코드 호환용 별칭 (아래 코드에서 supabase.from()/supabase.channel() 그대로 사용)
+  var supabase = sb;
+
+// ✅ 이후 코드는 supabase/sb를 사용
+  let currentUser = null;
+  let currentUserDbId = null;
+
+  let rtChannel = null;
+  let rtDebounceTimer = null;
+  let rtSubscribedUserId = null;
+
+  let timelineExpanded = false;
+
+    function rtTriggerReload(reason = '') {
+      clearTimeout(rtDebounceTimer);
+      rtDebounceTimer = setTimeout(() => {
+        // console.log('[Realtime] reload by:', reason);
+        loadStatus();
+      }, 250);
+    }
+
+    /* =========================
+      상태 변수
+    ========================= */
+    let profitMode = 'today'; // 'today' | 'total'
+    let lastUpdatedAt = null;
+
+    let prev = {
+      amount: 0,
+      todayProfit: 0,
+      totalProfit: 0,
+      totalAsset: 0,
+      initialized: false,
+      suppressDeltaOnce: false,
+    };
+
+    /* =========================
+      유틸
+    ========================= */
+    function formatAmount(value) {
+      if (value == null || isNaN(value)) return '- 원';
+      return Number(value).toLocaleString('ko-KR') + ' 원';
+    }
+
+    // ✅ 로컬 날짜 키 (오늘 수익 리셋 판단용)
+    function getLocalDateKey(d = new Date()) {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    // ✅ 특정 값(예: 투자중 금액) 증감배지는 "변경 1회"만 보여주기
+    // - DB 값이 바뀐 직후 첫 조회에만 배지를 띄우고,
+    // - 그 즉시 기준값을 업데이트해 새로고침/재조회 시 다시 안 뜨게 함.
+    function oneTimeDelta(storageKey, userId, currentValue) {
+      const key = `${storageKey}:${userId}`;
+      const prevRaw = localStorage.getItem(key);
+      const prevVal = prevRaw == null ? null : Number(prevRaw);
+
+      if (prevVal == null || isNaN(prevVal)) {
+        localStorage.setItem(key, String(Number(currentValue || 0)));
+        return 0;
+      }
+
+      const cur = Number(currentValue || 0);
+      const delta = cur - prevVal;
+
+      if (delta !== 0) {
+        localStorage.setItem(key, String(cur));
+        return delta;
+      }
+      return 0;
+    }
+
+
+    function maskPhone(phone) {
+      if (!phone) return '-';
+      const digits = String(phone).replace(/[^0-9]/g, '');
+      if (digits.length < 8) return phone;
+      const head = digits.slice(0, 3);
+      const tail = digits.slice(-4);
+      return head + '-****-' + tail;
+    }
+
+    function formatKST(isoString) {
+      try {
+        const d = new Date(isoString);
+        return d.toLocaleString('ko-KR', { hour12:false });
+      } catch (e) {
+        return isoString || '-';
+      }
+    }
+
+    function relativeTime(fromDate) {
+      if (!fromDate) return '-';
+      const diff = Date.now() - fromDate.getTime();
+      const sec = Math.floor(diff / 1000);
+      if (sec < 10) return '방금';
+      if (sec < 60) return sec + '초 전';
+      const min = Math.floor(sec / 60);
+      if (min < 60) return min + '분 전';
+      const hr = Math.floor(min / 60);
+      if (hr < 24) return hr + '시간 전';
+      return Math.floor(hr / 24) + '일 전';
+    }
+
+    function setLastUpdated(date) {
+      lastUpdatedAt = date;
+      const el = document.getElementById('lastUpdatedText');
+      if (el) el.textContent = '마지막 업데이트: ' + relativeTime(lastUpdatedAt);
+    }
+
+    function setRealtimeError(show, msg='') {
+      const box = document.getElementById('realtimeError');
+      if (!box) return;
+      if (!show) { box.classList.remove('show'); return; }
+      if (msg) box.firstChild.textContent = msg + ' ';
+      box.classList.add('show');
+    }
+
+    function setSkeleton(on) {
+      const ids = ['boxTopAmount','boxInvest','boxRealized','boxTotal'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (on) el.classList.add('skeleton');
+        else el.classList.remove('skeleton');
+      });
+    }
+
+    /* =========================
+      배지(유지)
+    ========================= */
+    function badgeKey(id) {
+      // ✅ FINAL: 배지는 모드(오늘/누적)와 무관하게 동일해야 하므로 profitMode를 키에 포함하지 않음
+      return "neoai_badge_" + id;
+    }
+
+    function restoreBadge(badgeEl, id) {
+      try {
+        const raw = localStorage.getItem(badgeKey(id));
+        if (!raw) return;
+        const obj = JSON.parse(raw);
+        if (obj && obj.text && obj.className) {
+          badgeEl.textContent = obj.text;
+          badgeEl.className = obj.className;
+        }
+      } catch (e) {}
+    }
+
+    
+    /* =========================
+      ✅ FINAL: 수익 증감배지(이벤트 기준 단일화)
+      - profit_logs 최신 1건을 '마지막 수익 이벤트'로 간주
+      - 새로고침/재조회에도 유지 (localStorage)
+      - 오늘/누적/총금액 모두 동일 배지
+    ========================= */
+    function profitEventStoreKey(userId) {
+      return "neoai_profit_event_" + userId;
+    }
+
+    function getLastProfitEventDelta(userId, recentLogsAsc) {
+      // recentLogsAsc: 오래된 -> 최신(배열 마지막이 최신)
+      let latest = null;
+      if (Array.isArray(recentLogsAsc) && recentLogsAsc.length) {
+        latest = recentLogsAsc[recentLogsAsc.length - 1];
+      }
+
+      const key = profitEventStoreKey(userId);
+      let stored = null;
+      try { stored = JSON.parse(localStorage.getItem(key)); } catch (e) {}
+
+      // 로그가 전혀 없으면 배지 제거
+      if (!latest) {
+        try { localStorage.removeItem(key); } catch (e) {}
+        return { delta: 0, sig: null, at: null };
+      }
+
+      const delta = Number(latest.amount_delta || 0);
+      const at = latest.created_at || null;
+      // ✅ 같은 금액이 반복되어도 '새 이벤트'면 갱신되도록 created_at을 포함해 시그니처 생성
+      const sig = String(at || "") + "|" + String(delta);
+
+      // 저장된 이벤트와 동일하면 저장값 유지 (배지 유지 목적)
+      if (stored && stored.sig === sig) {
+        return { delta: Number(stored.delta || 0), sig: stored.sig, at: stored.at || null };
+      }
+
+      // 새 이벤트면 갱신 저장
+      const next = { delta, sig, at };
+      try { localStorage.setItem(key, JSON.stringify(next)); } catch (e) {}
+      return next;
+    }
+
+function renderDeltaBadge(badgeEl, delta, opts = {}) {
+      if (!badgeEl) return;
+
+      const persistId = opts.persistId || null;
+      const keepOnZero = (opts.keepOnZero !== false);   // default true
+      const clearOnZero = !!opts.clearOnZero;           // default false
+
+      // ✅ 저장된 배지 먼저 복원 (새로고침/재조회에도 유지)
+      if (persistId) restoreBadge(badgeEl, persistId);
+
+      // ✅ 변동 없으면:
+      // - keepOnZero=true  => 기존(저장된) 배지 그대로 유지
+      // - clearOnZero=true => 배지 제거(+저장값도 제거)
+      if (!delta) {
+        if (!keepOnZero || clearOnZero) {
+          badgeEl.className = '';
+          badgeEl.textContent = '';
+          if (persistId) {
+            try { localStorage.removeItem(badgeKey(persistId)); } catch (e) {}
+          }
+        }
+        return;
+      }
+
+      const cls = 'delta-badge ' + (delta > 0 ? 'delta-up' : 'delta-down');
+      const txt = (delta > 0 ? '▲ ' : '▼ ') + Math.abs(delta).toLocaleString('ko-KR') + '원';
+
+      badgeEl.className = cls;
+      badgeEl.textContent = txt;
+
+      if (persistId) {
+        try { localStorage.setItem(badgeKey(persistId), JSON.stringify({ className: cls, text: txt })); } catch (e) {}
+      }
+    }
+
+
+    /* =========================
+      애니메이션
+    ========================= */
+    function animateMoney(numEl, from, to, durationMs = 650) {
+      if (!numEl) return;
+      if (!Number.isFinite(from)) from = 0;
+      if (!Number.isFinite(to)) to = 0;
+
+      if (from === to) {
+        numEl.textContent = formatAmount(to);
+        return;
+      }
+
+      const start = performance.now();
+      const diff = to - from;
+
+      function tick(now) {
+        const t = Math.min(1, (now - start) / durationMs);
+        const eased = 1 - Math.pow(1 - t, 3);
+        const val = Math.round(from + diff * eased);
+        numEl.textContent = formatAmount(val);
+        if (t < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    function applyPulse(el, direction) {
+      if (!el) return;
+      el.classList.remove('pulse-up','pulse-down');
+      void el.offsetWidth;
+      if (direction === 'up') el.classList.add('pulse-up');
+      if (direction === 'down') el.classList.add('pulse-down');
+    }
+
+    function applyCardGlow(cardEl, direction) {
+      if (!cardEl) return;
+      cardEl.classList.remove('cardGlowUp','cardGlowDown');
+      void cardEl.offsetWidth;
+      if (direction === 'up') cardEl.classList.add('cardGlowUp');
+      if (direction === 'down') cardEl.classList.add('cardGlowDown');
+    }
+
+    function applySweep(cardEl, direction) {
+      if (!cardEl) return;
+      cardEl.classList.remove('sweep-up','sweep-down');
+      void cardEl.offsetWidth;
+      if (direction === 'up') cardEl.classList.add('sweep-up');
+      if (direction === 'down') cardEl.classList.add('sweep-down');
+    }
+
+    /* =========================
+      탭 전환
+    ========================= */
+    function showTab(tab) {
+      const tabStatus = document.getElementById('tabStatus');
+      const tabIntro = document.getElementById('tabIntro');
+      const tabAccount = document.getElementById('tabAccount');
+
+      const sectionStatus = document.getElementById('sectionStatus');
+      const sectionRealtime = document.getElementById('sectionRealtime');
+      const sectionStatusExtra = document.getElementById('sectionStatusExtra');
+      const sectionIntro = document.getElementById('sectionIntro');
+      const sectionAccount = document.getElementById('sectionAccount');
+
+      tabStatus.classList.toggle('active', tab === 'status');
+      tabIntro.classList.toggle('active', tab === 'intro');
+      tabAccount.classList.toggle('active', tab === 'account');
+
+      const isStatus = tab === 'status';
+      const isIntro = tab === 'intro';
+      const isAccount = tab === 'account';
+
+      sectionStatus.classList.toggle('hidden', !isStatus);
+      sectionRealtime.classList.toggle('hidden', !isStatus);
+      sectionStatusExtra.classList.toggle('hidden', !isStatus);
+
+      sectionIntro.classList.toggle('hidden', !isIntro);
+      sectionAccount.classList.toggle('hidden', !isAccount);
+    }
+
+    /* =========================
+      상태/단계/내정보 렌더
+    ========================= */
+    function renderStatus(status) {
+      const badge = document.getElementById('statusBadge');
+      if (!badge) return;
+      badge.innerHTML = '';
+
+      const wrapper = document.createElement('span');
+      wrapper.classList.add('status-pill');
+      const dot = document.createElement('span');
+      dot.classList.add('status-dot');
+      const text = document.createElement('span');
+
+      if (!status || status === '대기중') {
+        wrapper.classList.add('status-wait');
+        text.textContent = '대기중';
+      } else if (status === '진행중') {
+        wrapper.classList.add('status-run');
+        text.textContent = '진행중';
+      } else {
+        wrapper.classList.add('status-done');
+        text.textContent = '진행 완료';
+      }
+
+      wrapper.appendChild(dot);
+      wrapper.appendChild(text);
+      badge.appendChild(wrapper);
+    }
+
+    function renderSteps(status) {
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+
+      let key = 'wait';
+      if (status === '진행중') key = 'run';
+      else if (status === '진행 완료') key = 'done';
+
+      const target = document.querySelector('.step[data-step="' + key + '"]');
+      if (target) target.classList.add('active');
+    }
+
+    function fillAccountInfo(userFromDb) {
+      const merged = { ...(currentUser||{}), ...(userFromDb||{}) };
+      const elName = document.getElementById('acctName');
+      const elUsername = document.getElementById('acctUsername');
+      const elPhone = document.getElementById('acctPhone');
+      const elAmount = document.getElementById('acctAmount');
+      const elRealized = document.getElementById('acctRealized');
+      const elBank = document.getElementById('acctBank');
+
+      if (elName) elName.textContent = merged.name || '-';
+      if (elUsername) elUsername.textContent = merged.username || '-';
+      if (elPhone) elPhone.textContent = merged.phone ? maskPhone(merged.phone) : '-';
+      if (elAmount) elAmount.textContent = formatAmount(merged.amount || 0);
+      if (elRealized) elRealized.textContent = formatAmount(merged.realized_amount || 0);
+      if (elBank) elBank.textContent = merged.bank_account || '-';
+    }
+
+    /* =========================
+      Realtime 구독 (중복/변수 꼬임 제거 완료)
+    ========================= */
+    function subscribeRealtime(userRow) {
+      try {
+        const userId = userRow.id;
+
+        // 같은 유저면 재구독 안함
+        if (rtChannel && rtSubscribedUserId === userId) return;
+        rtSubscribedUserId = userId;
+
+        // 기존 채널 정리
+        if (rtChannel) {
+          sb.removeChannel(rtChannel);
+          rtChannel = null;
+        }
+
+        rtChannel = supabase
+          .channel('neoai-rt-' + userId)
+          .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'profit_logs', filter: `user_id=eq.${userId}` },
+            (payload) => rtTriggerReload('profit_logs INSERT')
+          )
+          .on(
+            'postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${userId}` },
+            (payload) => rtTriggerReload('users UPDATE')
+          )
+          .subscribe();
+
+      } catch (e) {
+        console.warn('Realtime subscribe failed:', e);
+      }
+    }
+
+    /* =========================
+      로그 불러오기
+    ========================= */
+    async function fetchProfitLogsForToday(userId) {
+      const start = new Date();
+      start.setHours(0,0,0,0);
+      const startIso = start.toISOString();
+
+      const { data, error } = await supabase
+        .from('profit_logs')
+        .select('amount_delta, created_at')
+        .eq('user_id', userId)
+        .gte('created_at', startIso)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return Array.isArray(data) ? data : [];
+    }
+
+    async function fetchProfitLogsRecent(userId, limit = 60) {
+      const { data, error } = await supabase
+        .from('profit_logs')
+        .select('amount_delta, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+      const arr = Array.isArray(data) ? data : [];
+      return arr.reverse(); // 오래된 -> 최신
+    }
+
+
+    // ✅ 누적 수익(전체) 계산: users.realized_amount 트리거가 지연/누락되어도 정확하게 표시하기 위해 profit_logs를 합산
+    async function fetchProfitTotal(userId) {
+      const pageSize = 1000;
+      let from = 0;
+      let sum = 0;
+
+      while (true) {
+        const { data, error } = await supabase
+          .from('profit_logs')
+          .select('amount_delta, created_at')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: true })
+          .range(from, from + pageSize - 1);
+
+        if (error) throw error;
+        const rows = Array.isArray(data) ? data : [];
+        if (rows.length === 0) break;
+
+        sum += rows.reduce((acc, r) => acc + Number(r.amount_delta || 0), 0);
+
+        if (rows.length < pageSize) break;
+        from += pageSize;
+      }
+
+      return sum;
+    }
+
+    /* =========================
+      타임라인 렌더
+    ========================= */
+    function renderTimeline(logs) {
+      const wrap = document.getElementById('profitTimeline');
+      const title = document.getElementById('timelineTitle');
+      const hint = document.getElementById('timelineHint');
+      const btn  = document.getElementById('btnToggleTimeline');
+
+      if (!wrap || !title || !hint) return;
+
+      title.textContent = (profitMode === 'today') ? '수익 로그 (오늘)' : '수익 로그 (최근 60건)';
+
+      if (!Array.isArray(logs) || logs.length === 0) {
+        hint.textContent = '기록 없음';
+        wrap.innerHTML = `
+          <div class="timeline-item">
+            <div class="timeline-left">
+              <div class="timeline-time">-</div>
+              <div class="timeline-msg">아직 수익 로그가 없습니다.</div>
+            </div>
+            <div class="timeline-delta timeline-same">-</div>
+          </div>
+        `;
+        if (btn) btn.style.display = 'none';
+        return;
+      }
+
+      const arr = [...logs].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      const visible = timelineExpanded ? arr.length : 3;
+      const showArr = arr.slice(0, visible);
+
+      hint.textContent = `총 ${logs.length}건`;
+
+      if (btn) {
+        btn.style.display = logs.length > 3 ? 'inline-block' : 'none';
+        btn.textContent = timelineExpanded ? '접기' : '펼치기';
+      }
+
+      wrap.innerHTML = '';
+      showArr.forEach((r) => {
+        const delta = Number(r.amount_delta || 0);
+        const cls = delta > 0 ? 'timeline-up' : (delta < 0 ? 'timeline-down' : 'timeline-same');
+        const sign = delta > 0 ? '▲' : (delta < 0 ? '▼' : '–');
+        const txt = `${sign} ${Math.abs(delta).toLocaleString('ko-KR')}원`;
+
+        const item = document.createElement('div');
+        item.className = 'timeline-item';
+        item.innerHTML = `
+          <div class="timeline-left">
+            <div class="timeline-time">${formatKST(r.created_at)}</div>
+            <div class="timeline-msg">${delta > 0 ? '수익 발생' : (delta < 0 ? '손실 발생' : '변동 없음')}</div>
+          </div>
+          <div class="timeline-delta ${cls}">${txt}</div>
+        `;
+        wrap.appendChild(item);
+      });
+    }
+
+    /* =========================
+      차트
+    ========================= */
+    function drawChart(series) {
+      const canvas = document.getElementById('profitChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0,0,w,h);
+
+      // grid
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(148,163,184,0.35)';
+      for (let i=1;i<=3;i++){
+        const y = (h/4)*i;
+        ctx.beginPath();
+        ctx.moveTo(0,y);
+        ctx.lineTo(w,y);
+        ctx.stroke();
+      }
+
+      if (!Array.isArray(series) || series.length < 2) return;
+
+      const min = Math.min(...series);
+      const max = Math.max(...series);
+      const range = Math.max(1, max - min);
+
+      const padX = 10;
+      const padY = 12;
+
+      ctx.lineWidth = 2.2;
+      ctx.strokeStyle = 'rgba(79,70,229,0.9)';
+      ctx.beginPath();
+
+      series.forEach((v, i) => {
+        const x = padX + ((w - padX*2) * (i / (series.length - 1)));
+        const y = (h - padY) - ((h - padY*2) * ((v - min) / range));
+        if (i === 0) ctx.moveTo(x,y);
+        else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+
+      // last dot
+      const last = series[series.length - 1];
+      const lx = padX + (w - padX*2);
+      const ly = (h - padY) - ((h - padY*2) * ((last - min) / range));
+      ctx.fillStyle = 'rgba(79,70,229,1)';
+      ctx.beginPath();
+      ctx.arc(lx, ly, 4, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    /* =========================
+      로그인 체크
+    ========================= */
+    function getLoginScope() {
+      // ✅ 로그인 계정 식별자(브라우저 공용값 금지)
+      try {
+        const raw = localStorage.getItem('neoai_current_user') || '';
+        // currentUser에 들어있는 값 우선
+        if (currentUser) {
+          if (currentUser.id != null) return String(currentUser.id);
+          if (currentUser.uid != null) return String(currentUser.uid);
+          if (currentUser.user_id != null) return String(currentUser.user_id);
+          if (currentUser.email) return String(currentUser.email);
+          if (currentUser.username) return String(currentUser.username);
+        }
+        // 그래도 없으면 raw 자체를 스코프로 사용(계정별로 JSON이 다르므로 섞이지 않음)
+        return raw ? ('raw_' + btoa(unescape(encodeURIComponent(raw))).slice(0, 24)) : 'raw_empty';
+      } catch (e) {
+        return 'raw_err';
+      }
+    }
+
+    function clearAllDeltaBadges() {
+      // ✅ 계정 전환 시 남아있는 '증감배지(Δ)' 캐시를 전부 제거
+      try {
+        const keys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith('neoai_badge_')) keys.push(k);
+        }
+        keys.forEach(k => localStorage.removeItem(k));
+      } catch (e) {}
+    }
+
+    function ensureBadgeScope() {
+      // ✅ 현재 로그인 계정이 바뀌면, 이전 계정의 증감배지를 절대 따라오지 않게 초기화
+      const scope = getLoginScope();
+      const prev = localStorage.getItem('neoai_badge_active_scope');
+      if (!prev || prev !== scope) {
+        clearAllDeltaBadges();
+        localStorage.setItem('neoai_badge_active_scope', scope);
+      }
+      return scope;
+    }
+
+
+    function requireLogin() {
+      const raw = localStorage.getItem('neoai_current_user');
+      if (!raw) {
+        alert('로그인이 필요합니다.');
+        window.location.href = 'index.html';
+        return false;
+      }
+      try {
+        currentUser = JSON.parse(raw);
+        ensureBadgeScope();
+        return true;
+      } catch (e) {
+        localStorage.removeItem('neoai_current_user');
+        window.location.href = 'index.html';
+        return false;
+      }
+    }
+
+    /* =========================
+      모드 UI
+    ========================= */
+    function setModeUI() {
+      const todayBtn = document.getElementById('toggleToday');
+      const totalBtn = document.getElementById('toggleTotal');
+      const label = document.getElementById('realizedLabel');
+      const title = document.getElementById('chartTitle');
+
+      if (profitMode === 'today') {
+        todayBtn.classList.add('active');
+        totalBtn.classList.remove('active');
+        if (label) label.textContent = '수익 (오늘)';
+        if (title) title.textContent = '실시간 수익 그래프 (오늘)';
+      } else {
+        totalBtn.classList.add('active');
+        todayBtn.classList.remove('active');
+        if (label) label.textContent = '수익 (누적)';
+        if (title) title.textContent = '실시간 수익 그래프 (누적)';
+      }
+    }
+
+    /* =========================
+      메인 로더
+    ========================= */
+    async function loadStatus() {
+      setRealtimeError(false);
+      setSkeleton(true);
+
+      const nameLine = document.getElementById('nameLine');
+      const displayName = (currentUser && (currentUser.name || currentUser.username)) || '';
+      if (nameLine) {
+        nameLine.textContent = displayName
+          ? (displayName + '님의 AI 투자 진행 정보입니다.')
+          : 'AI 투자 진행 정보입니다.';
+      }
+
+      try {
+        const { data: userRow, error: userErr } = await supabase
+          .from('users')
+          .select('*')
+          .eq('username', currentUser.username)
+          .maybeSingle();
+
+        if (userErr) throw userErr;
+        if (!userRow) throw new Error('users 테이블에서 사용자 데이터를 찾을 수 없습니다.');
+
+        currentUserDbId = userRow.id;
+
+        // ✅ Realtime 구독
+        subscribeRealtime(userRow);
+
+        // users 값
+        const amount = Number(userRow.amount || 0);
+        const realizedTotalFromUsers = Number(userRow.realized_amount || 0);
+        const totalProfit = await fetchProfitTotal(userRow.id);
+        const totalAssetTotal = amount + totalProfit;
+
+        // logs
+        const todayLogs = await fetchProfitLogsForToday(userRow.id);
+        const recentLogs = await fetchProfitLogsRecent(userRow.id, 60);
+
+        const todayProfit = todayLogs.reduce((sum, r) => sum + Number(r.amount_delta || 0), 0);
+        // ✅ 오늘 수익 리셋(00시) 감지: 날짜가 바뀌면 "감소 배지"가 뜨지 않도록 초기화 처리
+        const todayKey = getLocalDateKey(new Date());
+        const todayKeyStore = `neoai_today_key:${userRow.id}`;
+        const lastTodayKey = localStorage.getItem(todayKeyStore);
+        const dayChanged = !!(lastTodayKey && lastTodayKey !== todayKey);
+        if (!lastTodayKey || dayChanged) localStorage.setItem(todayKeyStore, todayKey);
+
+        // ✅ 화면에 표시되는 수익(오늘/누적)
+        const realizedShown = (profitMode === 'today') ? todayProfit : totalProfit;
+
+        // ✅ 총금액(투자중 + 실현)은 "항상 누적 실현수익" 기준 (토글과 무관하게 동일해야 함)
+        const totalShown = amount + totalProfit;
+
+        // ✅ 타임라인
+        renderTimeline(profitMode === 'today' ? todayLogs : recentLogs);
+
+        // DOM 참조
+        const amountNum = document.getElementById('amountNum');
+        const amountBadge = document.getElementById('amountBadge');
+
+        const investNum = document.getElementById('amountInvestNum');
+        const investBadge = document.getElementById('amountInvestBadge');
+
+        const realizedNum = document.getElementById('realizedNum');
+        const realizedBadge = document.getElementById('realizedBadge');
+
+        const totalNum = document.getElementById('totalNum');
+        const totalBadge = document.getElementById('totalBadge');
+
+        const boxRealized = document.getElementById('boxRealized');
+        const boxTotal = document.getElementById('boxTotal');
+
+        // 색상
+        if (realizedNum?.parentElement) {
+          realizedNum.parentElement.classList.remove('amount-positive','amount-muted');
+          realizedNum.parentElement.classList.add(realizedShown > 0 ? 'amount-positive' : 'amount-muted');
+        }
+        if (totalNum?.parentElement) {
+          totalNum.parentElement.classList.remove('amount-positive','amount-muted');
+          totalNum.parentElement.classList.add(totalShown > 0 ? 'amount-positive' : 'amount-muted');
+        }
+
+        // 이전값
+        const prevAmount = prev.amount;
+        let prevToday = prev.todayProfit;
+        if (dayChanged) prevToday = 0;
+        const prevTotalProfit = prev.totalProfit;
+        const prevAsset = prev.totalAsset;
+        const prevRealizedShown = (profitMode === 'today') ? prevToday : prevTotalProfit;
+
+        // delta
+        // 1) 투자중 금액 배지: "변경 1회"만 표시 (새로고침/재조회 시 재표시 방지)
+        const deltaAmount = oneTimeDelta('neoai_invest_amount', userRow.id, amount);
+        const deltaInvest = deltaAmount;
+
+        // 2) 오늘 수익: 00시 리셋은 "감소"로 취급하지 않음 (배지/애니메이션 억제)
+        const suppressTodayReset = (profitMode === 'today') && dayChanged;
+
+        const deltaRealized =
+          prev.initialized && !prev.suppressDeltaOnce && !suppressTodayReset
+            ? (realizedShown - prevRealizedShown)
+            : 0;
+
+        // 3) 총 금액: 항상 누적 기준이므로, 토글과 무관하게 "실제 변동"만 반영
+        //    단, 00시 날짜 변경으로 인한 '오늘 수익 리셋'은 총 금액 변화로 취급하지 않도록 1회 억제
+        const deltaTotal =
+          prev.initialized && !prev.suppressDeltaOnce && !dayChanged
+            ? (totalShown - prevAsset)
+            : 0;
+
+        // 배지
+        // ✅ 요청사항: 'AI투자중인 금액' / '투자중인 금액'에는 증감 배지를 표시하지 않음
+        if (amountBadge) { amountBadge.className = ''; amountBadge.textContent = ''; }
+        if (investBadge) { investBadge.className = ''; investBadge.textContent = ''; }
+
+        // ✅ 수익(오늘/누적) 및 총금액 배지는 계속 유지/갱신
+        // ✅ FINAL: 마지막 수익 이벤트 1개 기준으로 배지 단일화
+        const ev = getLastProfitEventDelta(userRow.id, recentLogs);
+
+        // 배지(오늘/누적/총금액 동일)
+        renderDeltaBadge(realizedBadge, ev.delta, { persistId: 'profitEventBadge', keepOnZero: true });
+        renderDeltaBadge(totalBadge,    ev.delta, { persistId: 'profitEventBadge', keepOnZero: true });
+
+
+        // 숫자
+        if (!prev.initialized || prev.suppressDeltaOnce || suppressTodayReset) {
+          if (amountNum)  amountNum.textContent  = formatAmount(amount);
+          if (investNum)  investNum.textContent  = formatAmount(amount);
+          if (realizedNum)realizedNum.textContent= formatAmount(realizedShown);
+          if (totalNum)   totalNum.textContent   = formatAmount(totalShown);
+        } else {
+          animateMoney(amountNum,  prevAmount, amount);
+          animateMoney(investNum,  prevAmount, amount);
+          animateMoney(realizedNum,prevRealizedShown, realizedShown);
+          animateMoney(totalNum,   prevAsset, totalShown);
+        }
+
+        // 효과
+        const dirReal = deltaRealized > 0 ? 'up' : (deltaRealized < 0 ? 'down' : null);
+        const dirTot  = deltaTotal > 0 ? 'up' : (deltaTotal < 0 ? 'down' : null);
+
+        if (dirReal) {
+          applyPulse(realizedNum?.parentElement, dirReal);
+          applyCardGlow(boxRealized, dirReal);
+        }
+        if (dirTot) {
+          applyPulse(totalNum?.parentElement, dirTot);
+          applyCardGlow(boxTotal, dirTot);
+          applySweep(boxTotal, dirTot);
+        }
+
+        // ✅ 차트 시리즈
+        let series = [];
+        if (profitMode === 'today') {
+          let c = 0;
+          const deltas = todayLogs.map(r => Number(r.amount_delta || 0));
+          if (deltas.length === 0) deltas.push(0, 0);
+          if (deltas.length === 1) deltas.unshift(0);
+          deltas.forEach(d => { c += d; series.push(c); });
+          const hint = document.getElementById('chartHint');
+          if (hint) hint.textContent = '오늘 누적(로그 기반)';
+        } else {
+          const deltas = recentLogs.map(r => Number(r.amount_delta || 0));
+          const sumRecent = deltas.reduce((s,v)=>s+v,0);
+          let base = totalProfit - sumRecent;
+          let c = base;
+          if (deltas.length === 0) deltas.push(0, 0);
+          if (deltas.length === 1) deltas.unshift(0);
+          series = [];
+          deltas.forEach(d => { c += d; series.push(c); });
+          const hint = document.getElementById('chartHint');
+          if (hint) hint.textContent = '누적(최근 60건 기준)';
+        }
+        drawChart(series);
+
+        // ✅ 상태/단계/내정보
+        renderStatus(userRow.status);
+        renderSteps(userRow.status);
+        fillAccountInfo({ ...userRow, realized_amount: totalProfit });
+
+        // prev 저장
+        prev.amount = amount;
+        prev.todayProfit = todayProfit;
+        prev.totalProfit = totalProfit;
+        prev.totalAsset = totalShown;
+        prev.initialized = true;
+        prev.suppressDeltaOnce = false;
+
+        setSkeleton(false);
+        setLastUpdated(new Date());
+      } catch (e) {
+        console.error(e);
+        setSkeleton(false);
+        setRealtimeError(true, '조회 실패: ' + (e?.message || '오류가 발생했습니다.'));
+      }
+    }
+
+    /* =========================
+      이벤트 바인딩 (중복 금지)
+    ========================= */
+    document.addEventListener('DOMContentLoaded', () => {
+      // ✅ 모달이 로그인하자마자 뜨는 문제 차단(안전장치)
+      const settingsModal = document.getElementById('settingsModal');
+      if (settingsModal) settingsModal.classList.add('hidden');
+
+      if (!requireLogin()) return;
+
+      // 탭
+      document.getElementById('tabStatus')?.addEventListener('click', () => showTab('status'));
+      document.getElementById('tabIntro')?.addEventListener('click', () => showTab('intro'));
+      document.getElementById('tabAccount')?.addEventListener('click', () => showTab('account'));
+
+      // 로그아웃
+      document.getElementById('btnLogout')?.addEventListener('click', () => {
+        localStorage.removeItem('neoai_current_user');
+                try {
+          const scope = (currentUserDbId != null ? String(currentUserDbId) : (currentUser && currentUser.username) ? String(currentUser.username) : 'anon');
+          ['realizedBadge','totalBadge'].forEach(id => {
+            ['today','total'].forEach(mode => {
+              localStorage.removeItem(`neoai_badge_${scope}_${id}_${mode}`);
+            });
+          });
+        } catch (e) {}
+alert('로그아웃 되었습니다.');
+        window.location.href = 'index.html';
+      });
+
+      // 재조회
+      document.getElementById('btnRefresh')?.addEventListener('click', loadStatus);
+      document.getElementById('btnRetryInline')?.addEventListener('click', loadStatus);
+
+      // 펼치기/접기 (딱 1번만)
+      document.getElementById('btnToggleTimeline')?.addEventListener('click', () => {
+        timelineExpanded = !timelineExpanded;
+        loadStatus();
+      });
+
+      // 토글
+      document.getElementById('toggleToday')?.addEventListener('click', async () => {
+        profitMode = 'today';
+        setModeUI();
+        prev.suppressDeltaOnce = true;
+        await loadStatus();
+      });
+
+      document.getElementById('toggleTotal')?.addEventListener('click', async () => {
+        profitMode = 'total';
+        setModeUI();
+        prev.suppressDeltaOnce = true;
+        await loadStatus();
+      });
+
+      // ✅ 내 정보 수정 모달: "버튼 눌렀을 때만" 열림
+      const btnOpenSettings = document.getElementById('btnOpenSettings');
+      const btnCancelSettings = document.getElementById('btnCancelSettings');
+      const btnSaveSettings = document.getElementById('btnSaveSettings');
+
+      btnOpenSettings?.addEventListener('click', () => {
+        if (!settingsModal) return;
+        document.getElementById('editPassword').value = '';
+        document.getElementById('editBank').value = ''; // 값은 loadStatus에서 사용자 정보 채워지니 원하면 여기서 넣어도 됨
+        settingsModal.classList.remove('hidden');
+      });
+
+      btnCancelSettings?.addEventListener('click', () => {
+        settingsModal?.classList.add('hidden');
+      });
+
+      // 모달 바깥 클릭 시 닫기(원치 않으면 지워도 됨)
+      settingsModal?.addEventListener('click', (e) => {
+        if (e.target === settingsModal) settingsModal.classList.add('hidden');
+      });
+
+      btnSaveSettings?.addEventListener('click', async () => {
+        try {
+          const newPw = document.getElementById('editPassword').value.trim();
+          const newBank = document.getElementById('editBank').value.trim();
+
+          const payload = {};
+          if (newPw) payload.password = newPw;
+          payload.bank_account = newBank || null;
+
+          if (!currentUserDbId) {
+            alert('사용자 정보를 확인할 수 없습니다. 재조회 후 다시 시도하세요.');
+            return;
+          }
+
+          const { data, error } = await supabase
+            .from('users')
+            .update(payload)
+            .eq('id', currentUserDbId)
+            .select('*')
+            .maybeSingle();
+
+          if (error) throw error;
+
+          // localStorage user에도 bank_account 반영
+          currentUser = { ...currentUser, ...data };
+          localStorage.setItem('neoai_current_user', JSON.stringify(currentUser));
+
+          fillAccountInfo(data);
+          settingsModal?.classList.add('hidden');
+          alert('정보가 저장되었습니다.');
+        } catch (e) {
+          console.error(e);
+          alert('정보 수정 중 오류가 발생했습니다.');
+        }
+      });
+
+      // 마지막 업데이트 텍스트만 갱신
+      setInterval(() => {
+        if (lastUpdatedAt) {
+          const el = document.getElementById('lastUpdatedText');
+          if (el) el.textContent = '마지막 업데이트: ' + relativeTime(lastUpdatedAt);
+        }
+      }, 5000);
+
+      // 초기
+      setModeUI();
+      showTab('status');
+      loadStatus();
+    });
+
+    // 페이지 나갈 때 채널 정리
+    window.addEventListener('beforeunload', () => {
+      try { if (rtChannel) sb.removeChannel(rtChannel); } catch (e) {}
+    });
+  </script>
+</body>
+</html>
+
+

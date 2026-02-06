@@ -1,6 +1,6 @@
 (function(){
   const fmt = new Intl.NumberFormat('ko-KR');
-  window.neo = {
+  window.luen = {
     sb(){
       if (!window.supabase) throw new Error('supabase-js 로드 실패');
       const url = window.LUEN_SUPABASE_URL;
@@ -27,7 +27,7 @@
       return { ok, user: raw ? JSON.parse(raw) : null };
     },
     require(kind, redirect){
-      const s = window.neo.getSession(kind);
+      const s = window.luen.getSession(kind);
       if (!s.ok) {
         alert('로그인이 필요합니다.');
         window.location.href = redirect;

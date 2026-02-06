@@ -1054,7 +1054,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
           .channel('luenai-rt-' + userId)
           .on(
             'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'app_app_profit_logs', filter: `user_id=eq.${userId}` },
+            { event: 'INSERT', schema: 'public', table: 'app_profit_logs', filter: `user_id=eq.${userId}` },
             (payload) => rtTriggerReload('app_profit_logs INSERT')
           )
           .on(
@@ -1078,7 +1078,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
       const startIso = start.toISOString();
 
       const { data, error } = await supabase
-        .from('app_app_profit_logs')
+        .from('app_profit_logs')
         .select('amount_delta, created_at')
         .eq('user_id', userId)
         .gte('created_at', startIso)
@@ -1090,7 +1090,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
 
     async function fetchProfitLogsRecent(userId, limit = 60) {
       const { data, error } = await supabase
-        .from('app_app_profit_logs')
+        .from('app_profit_logs')
         .select('amount_delta, created_at')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
@@ -1110,7 +1110,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
 
       while (true) {
         const { data, error } = await supabase
-          .from('app_app_profit_logs')
+          .from('app_profit_logs')
           .select('amount_delta, created_at')
           .eq('user_id', userId)
           .order('created_at', { ascending: true })

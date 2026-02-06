@@ -1,3 +1,95 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>회원가입 | LUEN</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      margin: 0;
+      background: #121212;
+      color: #eee;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: #1e1e1e;
+      padding: 28px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,.6);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      background: #2a2a2a;
+      border: 1px solid #333;
+      color: #fff;
+      border-radius: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 11px;
+      margin-top: 8px;
+      background: #3a7afe;
+      border: none;
+      color: #fff;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    button.secondary {
+      background: #444;
+    }
+
+    button:hover {
+      opacity: .9;
+    }
+
+    .error {
+      min-height: 20px;
+      margin-bottom: 10px;
+      color: #ff6b6b;
+      text-align: center;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="card">
+  <h1>회원가입</h1>
+
+  <div id="errorBox" class="error"></div>
+
+  <input id="username" placeholder="아이디">
+  <input id="password" type="password" placeholder="비밀번호">
+  <input id="password2" type="password" placeholder="비밀번호 확인">
+  <input id="name" placeholder="이름">
+  <input id="phone" placeholder="전화번호">
+  <input id="bankAccount" placeholder="계좌번호">
+
+  <button id="btnSubmit">회원가입</button>
+  <button id="btnCancel" class="secondary">취소</button>
+</div>
+
+
 <!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
@@ -10,6 +102,7 @@
   const sb = window.luen.sb();
 
   async function signup() {
+
     const username = document.getElementById('username').value.trim();
     const pw = document.getElementById('password').value.trim();
     const pw2 = document.getElementById('password2').value.trim();
@@ -17,6 +110,7 @@
     const phone = document.getElementById('phone').value.trim();
     const bankAccount = document.getElementById('bankAccount').value.trim();
     const errorBox = document.getElementById('errorBox');
+
     errorBox.textContent = '';
 
     if (!username || !pw || !pw2 || !name || !phone || !bankAccount) {
@@ -30,50 +124,64 @@
     }
 
     try {
-      // ✅ 아이디 중복 체크 (app_users)
-      const { data: exists } = await sb
+
+      /* 아이디 중복 체크 */
+      const { data: exists, error: checkErr } = await sb
         .from('app_users')
         .select('id')
         .eq('username', username)
         .maybeSingle();
+
+      if (checkErr) {
+        console.error(checkErr);
+        errorBox.textContent = '서버 오류';
+        return;
+      }
 
       if (exists) {
         errorBox.textContent = '이미 사용중인 아이디입니다.';
         return;
       }
 
-      // ✅ 회원 생성 (app_users)
+      /* 회원 생성 */
       const { error } = await sb
         .from('app_users')
         .insert({
           username,
-          password_hash: pw,   // 나중에 해시로 교체 가능
+          password_hash: pw,   // ⚠️ 테스트용 (나중에 해시화)
           name,
           phone,
           bank_account: bankAccount,
           amount: 0,
-          status: '대기중',
+          realized_amount: 0,
+          status: 'pending',
           approved: false,
           role: 'user'
         });
 
       if (error) {
         console.error(error);
-        errorBox.textContent = '회원가입 중 오류가 발생했습니다.';
+        errorBox.textContent = '회원가입 실패';
         return;
       }
 
-      alert('회원가입이 완료되었습니다. 관리자 승인 후 로그인 가능합니다.');
-      window.location.href = 'index.html';
+      alert('회원가입 완료! 관리자 승인 후 로그인 가능합니다.');
+      location.href = 'index.html';
 
     } catch (e) {
       console.error(e);
-      errorBox.textContent = '서버와 통신 중 오류가 발생했습니다.';
+      errorBox.textContent = '네트워크 오류';
     }
   }
 
+
+  /* 버튼 연결 */
   document.getElementById('btnSubmit').addEventListener('click', signup);
+
   document.getElementById('btnCancel').addEventListener('click', () => {
-    window.location.href = 'index.html';
+    location.href = 'index.html';
   });
 </script>
+
+</body>
+</html>

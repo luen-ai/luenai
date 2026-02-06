@@ -1,11 +1,11 @@
 // Shared Supabase client + tiny helpers
 // Requires:
 //   - https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js
-//   - shared/config.js (window.NEO_SUPABASE_URL / window.NEO_SUPABASE_ANON_KEY)
+//   - shared/config.js (window.LUEN_SUPABASE_URL / window.LUEN_SUPABASE_ANON_KEY)
 
 (function () {
-  const url = window.NEO_SUPABASE_URL;
-  const key = window.NEO_SUPABASE_ANON_KEY;
+  const url = window.LUEN_SUPABASE_URL;
+  const key = window.LUEN_SUPABASE_ANON_KEY;
 
   if (!url || !key) {
     console.error('Supabase config missing. Edit shared/config.js');

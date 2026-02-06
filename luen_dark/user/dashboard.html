@@ -647,19 +647,26 @@
     </div>
   </div>
 
- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
-const sb = window.luen.sb();   // ✅ 반드시 () 붙여야 '클라이언트'가 나옵니다
-const supabase = sb;           // ✅ 기존 코드가 supabase.from(...) 쓰는걸 그대로 살림
-  
+<!-- ✅ 반드시 config/sb/app 먼저 로드 -->
+<script src="../shared/config.js"></script>
+<script src="../shared/sb.js"></script>
+<script src="../shared/app.js"></script>
+
+<!-- ✅ 여기에서 sb/supabase 별칭을 만들어야 합니다 -->
+<script>
+  const sb = window.luen.sb();   // () 붙여서 '클라이언트' 가져오기
+  const supabase = sb;           // 기존 코드 호환용
+</script>
+
+<!-- ✅ 그 다음에 기존 dashboard 스크립트가 와야 합니다 -->
 <script>
   /* =========================
-    Supabase 연결
+     Supabase 연결
   ========================= */
   const supabaseUrl = 'https://uvwturgomovjvokojtkp.supabase.co';
   const supabaseKey = 'sb_publishable_a6k4T2_-ksuHVUvCduUlCQ_DtoR9R4F';
-
-  
 
   
 
@@ -1669,6 +1676,7 @@ alert('로그아웃 되었습니다.');
 <script src="../shared/app.js"></script>
 </body>
 </html>
+
 
 
 

@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>NEO AI ADMIN - 회원 & 투자 관리</title>
+  <title>luen AI ADMIN - 회원 & 투자 관리</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="../shared/theme.css" />
   <style>
@@ -218,7 +218,7 @@
 </head>
 <body>
   <aside class="sidebar">
-    <div class="logo"><span>NEO AI</span><br />ADMIN</div>
+    <div class="logo"><span>luen AI</span><br />ADMIN</div>
 
     <div class="menu-title">메인</div>
     <a href="dashboard.html" class="nav-item active">회원 & 투자 관리</a>
@@ -283,14 +283,14 @@
   <script src="../shared/sb.js"></script>
   <script>
     // shared/sb.js 에서 생성됨
-    const sb = window.neoSb;
+    const sb = window.luenSb;
 
     // 정렬 상태
     let __sortKey = 'created_at';
     let __sortAsc = true;
 
 function checkAdmin() {
-      const flag = localStorage.getItem('neoai_admin_logged_in');
+      const flag = localStorage.getItem('luenai_admin_logged_in');
       if (flag !== 'true') {
         alert('관리자 로그인이 필요합니다.');
         window.location.href = 'login.html';
@@ -451,8 +451,8 @@ function checkAdmin() {
     });
 
     document.getElementById('btnAdminLogout').addEventListener('click', () => {
-      localStorage.removeItem('neoai_admin_logged_in');
-      localStorage.removeItem('neoai_admin_user');
+      localStorage.removeItem('luenai_admin_logged_in');
+      localStorage.removeItem('luenai_admin_user');
       alert('관리자 로그아웃 되었습니다.');
       window.location.href = 'login.html';
     });

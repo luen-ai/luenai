@@ -3,7 +3,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>NEO AI ADMIN - 로그인</title>
+  <title>luen AI ADMIN - 로그인</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="../shared/theme.css" />
   <style>
@@ -114,7 +114,7 @@
 </head>
 <body>
   <div class="wrapper">
-    <div class="logo"><span>NEO AI</span> ADMIN</div>
+    <div class="logo"><span>luen AI</span> ADMIN</div>
     <div class="subtitle">관리자 전용 로그인 화면입니다.</div>
 
     <label for="adminId">관리자 아이디</label>
@@ -135,7 +135,7 @@
   <script src="../shared/sb.js"></script>
   <script>
     // shared/sb.js 에서 생성됨
-    const sb = window.neoSb;
+    const sb = window.luenSb;
 
     async function adminLogin() {
       const id = document.getElementById('adminId').value.trim();
@@ -162,8 +162,8 @@
           return;
         }
 
-        localStorage.setItem('neoai_admin_logged_in', 'true');
-        localStorage.setItem('neoai_admin_user', JSON.stringify(data));
+        localStorage.setItem('luenai_admin_logged_in', 'true');
+        localStorage.setItem('luenai_admin_user', JSON.stringify(data));
         window.location.href = 'dashboard.html';
       } catch (e) {
         console.error(e);

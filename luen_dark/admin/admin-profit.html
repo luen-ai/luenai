@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NEO AI 관리자 - 실현수익 증감 적용</title>
+  <title>luen AI 관리자 - 실현수익 증감 적용</title>
 
   <link rel="icon" type="image/png" href="./favicon.png" />
   <link rel="apple-touch-icon" href="./favicon.png" />
@@ -142,7 +142,7 @@
   <div class="wrap">
     <div class="card">
       <div class="top">
-        <div class="brand"><span>NEO AI</span> ADMIN · 실현수익 증감</div>
+        <div class="brand"><span>luen AI</span> ADMIN · 실현수익 증감</div>
         <div class="row" style="gap:8px;">
           
           <a class="btn secondary" href="dashboard.html" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">회원 & 투자 관리</a>
@@ -163,7 +163,7 @@
         <label for="username">유저 아이디(username)</label>
         <div class="row">
           <div style="flex:2; min-width:240px;">
-            <input id="username" placeholder="예: neoai_user01" autocomplete="off" />
+            <input id="username" placeholder="예: luenai_user01" autocomplete="off" />
           </div>
           <div style="flex:1; min-width:160px;">
             <button class="btn secondary" id="btnFind" type="button">조회</button>
@@ -241,8 +241,8 @@
      * - 너가 기존에 쓰는 방식이 있으면 여기만 맞춰줘
      ********************/
     function requireAdmin() {
-      // 예시: localStorage에 neoai_admin_logged_in = "true"
-      const ok = localStorage.getItem('neoai_admin_logged_in');
+      // 예시: localStorage에 luenai_admin_logged_in = "true"
+      const ok = localStorage.getItem('luenai_admin_logged_in');
       if (ok !== 'true') {
         alert('관리자 로그인이 필요합니다.');
         // 너의 어드민 로그인 페이지로
@@ -251,7 +251,7 @@
     }
 
     document.getElementById('btnLogout').addEventListener('click', () => {
-      localStorage.removeItem('neoai_admin_logged_in');
+      localStorage.removeItem('luenai_admin_logged_in');
       alert('로그아웃 되었습니다.');
       window.location.href = 'login.html';
     });
@@ -466,3 +466,4 @@ async function applyDeltaFromInput() {
   </script>
 </body>
 </html>
+

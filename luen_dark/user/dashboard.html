@@ -478,7 +478,7 @@
           </div>
 
           <div class="value-box" id="boxTotal">
-            <div class="value-label">총 금액 (투자중)</div>
+            <div class="value-label">총 금액 (투자중 + 실현)</div>
             <div class="value-main amount-muted">
               <span class="num" id="totalNum">- 원</span>
               <span class="badge" id="totalBadge"></span>
@@ -1079,8 +1079,9 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
 
       const { data, error } = await supabase
         .from('app_profit_logs')
-        .select('amount_delta, created_at')
+        .select('amount_delta, created_at, source_type')
         .eq('user_id', userId)
+        .in('source_type', ['payout','profit'])
         .gte('created_at', startIso)
         .order('created_at', { ascending: true });
 
@@ -1091,8 +1092,9 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
     async function fetchProfitLogsRecent(userId, limit = 60) {
       const { data, error } = await supabase
         .from('app_profit_logs')
-        .select('amount_delta, created_at')
+        .select('amount_delta, created_at, source_type')
         .eq('user_id', userId)
+        .in('source_type', ['payout','profit'])
         .order('created_at', { ascending: false })
         .limit(limit);
 
@@ -1111,8 +1113,9 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
       while (true) {
         const { data, error } = await supabase
           .from('app_profit_logs')
-          .select('amount_delta, created_at')
+          .select('amount_delta, created_at, source_type')
           .eq('user_id', userId)
+        .in('source_type', ['payout','profit'])
           .order('created_at', { ascending: true })
           .range(from, from + pageSize - 1);
 
@@ -1361,10 +1364,8 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
         // users 값
         const amount = Number(userRow.amount || 0);
         const realizedTotalFromUsers = Number(userRow.realized_amount || 0);
-        const totalProfit = await fetchProfitTotal(userRow.id);
-        const totalAssetTotal = amount; // ✅ 투자금액만 '총 금액'으로 표시
-
-        // logs
+        const totalProfit = realizedTotalFromUsers; // ✅ 누적 수익은 users.realized_amount 기준
+        const totalAssetTotal = amount + totalProfit;// logs
         const todayLogs = await fetchProfitLogsForToday(userRow.id);
         const recentLogs = await fetchProfitLogsRecent(userRow.id, 60);
 

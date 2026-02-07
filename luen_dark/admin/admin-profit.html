@@ -205,7 +205,7 @@
 
         <div class="help">
           ※ 전제 조건<br/>
-          - <b>profit_logs(user_id uuid, amount_delta numeric/int, created_at)</b> 존재<br/>
+          - <b>profit_logs(user_id uuid, delta numeric/int, created_at)</b> 존재<br/>
           - profit_logs insert 시 <b>users.realized_amount</b> 업데이트하는 트리거가 이미 적용되어 있음<br/>
           - RLS 정책이 “어드민”이 profit_logs insert / users select 가능하도록 열려 있어야 함
         </div>
@@ -268,13 +268,13 @@
       // 1) PostgREST aggregate 시도
       try {
         const { data, error } = await sb
-          .from('profit_logs')
-          .select('amount_delta.sum()')
+          .from('app_realized_logs')
+          .select('delta.sum()')
           .eq('user_id', userId);
 
         if (!error && Array.isArray(data) && data.length) {
           const row = data[0] || {};
-          const val = (row.sum ?? row['amount_delta']?.sum ?? Object.values(row)[0]);
+          const val = (row.sum ?? row['delta']?.sum ?? Object.values(row)[0]);
           const n = Number(val);
           if (Number.isFinite(n)) return n;
         }
@@ -289,15 +289,15 @@
 
       while (true) {
         const { data, error } = await sb
-          .from('profit_logs')
-          .select('amount_delta')
+          .from('app_realized_logs')
+          .select('delta')
           .eq('user_id', userId)
           .range(from, from + pageSize - 1);
 
         if (error) throw error;
 
         const rows = Array.isArray(data) ? data : [];
-        for (const r of rows) total += Number(r.amount_delta || 0);
+        for (const r of rows) total += Number(r.delta || 0);
 
         if (rows.length < pageSize) break;
         from += pageSize;
@@ -326,7 +326,7 @@
      ********************/
     async function findUserByUsername(username) {
       const { data, error } = await sb
-        .from('users')
+        .from('app_users')
         .select('id, username, name, realized_amount')
         .eq('username', username)
         .maybeSingle();
@@ -338,8 +338,8 @@
 
     async function loadTimeline(userId) {
       const { data, error } = await sb
-        .from('profit_logs')
-        .select('amount_delta, created_at')
+        .from('app_realized_logs')
+        .select('delta, created_at')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(20);
@@ -355,7 +355,7 @@
       }
 
       data.forEach(row => {
-        const amt = Number(row.amount_delta || 0);
+        const amt = Number(row.delta || 0);
         const div = document.createElement('div');
         div.className = 'item';
         div.innerHTML = `
@@ -435,11 +435,12 @@ async function applyDeltaFromInput() {
         const delta = n; // ✅ 양수=수익, 음수=손실
 
         // ✅ profit_logs에 기록 (트리거로 users 반영)
-        const { error } = await sb
-          .from('profit_logs')
-          .insert([{ user_id: selectedUser.id, amount_delta: delta }]);
-
-        if (error) throw error;
+        const { error } = await sb.rpc('admin_adjust_realized', {
+        p_user_id: selectedUser.id,
+        p_delta: delta,
+        p_note: 'admin-profit'
+      });
+if (error) throw error;
 
         el('deltaAmount').value = '';
         showOk(`✅ ${delta >= 0 ? '+' : ''}${delta.toLocaleString('ko-KR')}원 적용 완료`);
@@ -466,4 +467,3 @@ async function applyDeltaFromInput() {
   </script>
 </body>
 </html>
-

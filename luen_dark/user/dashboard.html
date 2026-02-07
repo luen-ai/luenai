@@ -478,7 +478,7 @@
           </div>
 
           <div class="value-box" id="boxTotal">
-            <div class="value-label">총 금액 (투자중 + 실현)</div>
+            <div class="value-label">총 금액 (투자중)</div>
             <div class="value-main amount-muted">
               <span class="num" id="totalNum">- 원</span>
               <span class="badge" id="totalBadge"></span>
@@ -818,7 +818,7 @@
     
     /* =========================
       ✅ FINAL: 수익 증감배지(이벤트 기준 단일화)
-      - app_profit_logs 최신 1건을 '마지막 수익 이벤트'로 간주
+      - app_realized_logs 최신 1건을 '마지막 수익 이벤트'로 간주
       - 새로고침/재조회에도 유지 (localStorage)
       - 오늘/누적/총금액 모두 동일 배지
     ========================= */
@@ -843,7 +843,7 @@
         return { delta: 0, sig: null, at: null };
       }
 
-      const delta = Number(latest.amount_delta || 0);
+      const delta = Number(latest.delta || 0);
       const at = latest.created_at || null;
       // ✅ 같은 금액이 반복되어도 '새 이벤트'면 갱신되도록 created_at을 포함해 시그니처 생성
       const sig = String(at || "") + "|" + String(delta);
@@ -1054,8 +1054,8 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
           .channel('luenai-rt-' + userId)
           .on(
             'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'app_profit_logs', filter: `user_id=eq.${userId}` },
-            (payload) => rtTriggerReload('app_profit_logs INSERT')
+            { event: 'INSERT', schema: 'public', table: 'app_realized_logs', filter: `user_id=eq.${userId}` },
+            (payload) => rtTriggerReload('app_realized_logs INSERT')
           )
           .on(
             'postgres_changes',
@@ -1078,8 +1078,8 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
       const startIso = start.toISOString();
 
       const { data, error } = await supabase
-        .from('app_profit_logs')
-        .select('amount_delta, created_at')
+        .from('app_realized_logs')
+        .select('delta, created_at')
         .eq('user_id', userId)
         .gte('created_at', startIso)
         .order('created_at', { ascending: true });
@@ -1090,8 +1090,8 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
 
     async function fetchProfitLogsRecent(userId, limit = 60) {
       const { data, error } = await supabase
-        .from('app_profit_logs')
-        .select('amount_delta, created_at')
+        .from('app_realized_logs')
+        .select('delta, created_at')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -1102,7 +1102,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
     }
 
 
-    // ✅ 누적 수익(전체) 계산: users.realized_amount 트리거가 지연/누락되어도 정확하게 표시하기 위해 app_profit_logs를 합산
+    // ✅ 누적 수익(전체) 계산: users.realized_amount 트리거가 지연/누락되어도 정확하게 표시하기 위해 app_realized_logs를 합산
     async function fetchProfitTotal(userId) {
       const pageSize = 1000;
       let from = 0;
@@ -1110,8 +1110,8 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
 
       while (true) {
         const { data, error } = await supabase
-          .from('app_profit_logs')
-          .select('amount_delta, created_at')
+          .from('app_realized_logs')
+          .select('delta, created_at')
           .eq('user_id', userId)
           .order('created_at', { ascending: true })
           .range(from, from + pageSize - 1);
@@ -1120,7 +1120,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
         const rows = Array.isArray(data) ? data : [];
         if (rows.length === 0) break;
 
-        sum += rows.reduce((acc, r) => acc + Number(r.amount_delta || 0), 0);
+        sum += rows.reduce((acc, r) => acc + Number(r.delta || 0), 0);
 
         if (rows.length < pageSize) break;
         from += pageSize;
@@ -1170,7 +1170,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
 
       wrap.innerHTML = '';
       showArr.forEach((r) => {
-        const delta = Number(r.amount_delta || 0);
+        const delta = Number(r.delta || 0);
         const cls = delta > 0 ? 'timeline-up' : (delta < 0 ? 'timeline-down' : 'timeline-same');
         const sign = delta > 0 ? '▲' : (delta < 0 ? '▼' : '–');
         const txt = `${sign} ${Math.abs(delta).toLocaleString('ko-KR')}원`;
@@ -1362,13 +1362,12 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
         const amount = Number(userRow.amount || 0);
         const realizedTotalFromUsers = Number(userRow.realized_amount || 0);
         const totalProfit = await fetchProfitTotal(userRow.id);
-        const totalAssetTotal = amount + totalProfit;
-
-        // logs
+        const totalAssetTotal = amount;
+// logs
         const todayLogs = await fetchProfitLogsForToday(userRow.id);
         const recentLogs = await fetchProfitLogsRecent(userRow.id, 60);
 
-        const todayProfit = todayLogs.reduce((sum, r) => sum + Number(r.amount_delta || 0), 0);
+        const todayProfit = todayLogs.reduce((sum, r) => sum + Number(r.delta || 0), 0);
         // ✅ 오늘 수익 리셋(00시) 감지: 날짜가 바뀌면 "감소 배지"가 뜨지 않도록 초기화 처리
         const todayKey = getLocalDateKey(new Date());
         const todayKeyStore = `luenai_today_key:${userRow.id}`;
@@ -1380,7 +1379,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
         const realizedShown = (profitMode === 'today') ? todayProfit : totalProfit;
 
         // ✅ 총금액(투자중 + 실현)은 "항상 누적 실현수익" 기준 (토글과 무관하게 동일해야 함)
-        const totalShown = amount + totalProfit;
+        const totalShown = amount;
 
         // ✅ 타임라인
         renderTimeline(profitMode === 'today' ? todayLogs : recentLogs);
@@ -1436,23 +1435,22 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
         //    단, 00시 날짜 변경으로 인한 '오늘 수익 리셋'은 총 금액 변화로 취급하지 않도록 1회 억제
         const deltaTotal =
           prev.initialized && !prev.suppressDeltaOnce && !dayChanged
-            ? (totalShown - prevAsset)
+            ? (totalShown - prevAmount)
             : 0;
 
         // 배지
         // ✅ 요청사항: 'AI투자중인 금액' / '투자중인 금액'에는 증감 배지를 표시하지 않음
         if (amountBadge) { amountBadge.className = ''; amountBadge.textContent = ''; }
         if (investBadge) { investBadge.className = ''; investBadge.textContent = ''; }
+        if (totalBadge) { totalBadge.className = ''; totalBadge.textContent = ''; }
 
         // ✅ 수익(오늘/누적) 및 총금액 배지는 계속 유지/갱신
         // ✅ FINAL: 마지막 수익 이벤트 1개 기준으로 배지 단일화
         const ev = getLastProfitEventDelta(userRow.id, recentLogs);
 
         // 배지(오늘/누적/총금액 동일)
-        renderDeltaBadge(realizedBadge, ev.delta, { persistId: 'profitEventBadge', keepOnZero: true });
-        renderDeltaBadge(totalBadge,    ev.delta, { persistId: 'profitEventBadge', keepOnZero: true });
-
-
+        renderDeltaBadge(realizedBadge, ev.delta, { persistId: 'profitEventBadge', keepOnZero: true });        // 총금액(투자중)에는 배지 표시하지 않음
+        if (totalBadge) { totalBadge.className = ''; totalBadge.textContent = ''; }
         // 숫자
         if (!prev.initialized || prev.suppressDeltaOnce || suppressTodayReset) {
           if (amountNum)  amountNum.textContent  = formatAmount(amount);
@@ -1463,7 +1461,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
           animateMoney(amountNum,  prevAmount, amount);
           animateMoney(investNum,  prevAmount, amount);
           animateMoney(realizedNum,prevRealizedShown, realizedShown);
-          animateMoney(totalNum,   prevAsset, totalShown);
+          animateMoney(totalNum,   prevAmount, totalShown);
         }
 
         // 효과
@@ -1484,14 +1482,14 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
         let series = [];
         if (profitMode === 'today') {
           let c = 0;
-          const deltas = todayLogs.map(r => Number(r.amount_delta || 0));
+          const deltas = todayLogs.map(r => Number(r.delta || 0));
           if (deltas.length === 0) deltas.push(0, 0);
           if (deltas.length === 1) deltas.unshift(0);
           deltas.forEach(d => { c += d; series.push(c); });
           const hint = document.getElementById('chartHint');
           if (hint) hint.textContent = '오늘 누적(로그 기반)';
         } else {
-          const deltas = recentLogs.map(r => Number(r.amount_delta || 0));
+          const deltas = recentLogs.map(r => Number(r.delta || 0));
           const sumRecent = deltas.reduce((s,v)=>s+v,0);
           let base = totalProfit - sumRecent;
           let c = base;
@@ -1659,9 +1657,3 @@ alert('로그아웃 되었습니다.');
   </script>
 </body>
 </html>
-
-
-
-
-
-

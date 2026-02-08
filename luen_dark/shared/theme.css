@@ -1,16 +1,16 @@
 :root{
-  --bg0:#eef3f9;
-  --bg1:#e6edf7;
-  --card:#ffffff;
-  --line:#d5deea;
-  --text:#0f172a;
-  --muted:#475569;
-  --accent:#3b82f6;
-  --accent2:#60a5fa;
-  --good:#16a34a;
+  --bg0:#0a1120;
+  --bg1:#101c33;
+  --card:rgba(15,23,42,.72);
+  --line:rgba(148,163,184,.22);
+  --text:rgba(248,250,252,.92);
+  --muted:rgba(203,213,225,.76);
+  --accent:#3ea8ff;
+  --accent2:#7c87ff;
+  --good:#22c55e;
   --bad:#ef4444;
   --warn:#f59e0b;
-  --shadow:0 18px 45px rgba(2,6,23,.12);
+  --shadow:0 18px 45px rgba(0,0,0,.45);
 }
 
 *{box-sizing:border-box;}
@@ -87,36 +87,124 @@ a{color:inherit;}
 .luen-table th{color: var(--muted); font-weight: 700;}
 .luen-table tr:last-child td{border-bottom:none;}
 
-/* ===== Auth pages (login/signup) ===== */
-body.auth{
-  /* glass card on dark image */
-  --card: rgba(10, 35, 66, .58);
-  --line: rgba(255,255,255,.18);
-  --text: #eaf2ff;
-  --muted: rgba(234,242,255,.75);
-  --shadow: 0 18px 45px rgba(0,0,0,.45);
+/* =========================
+   Auth (Login/Signup) Background + Glass Card
+========================= */
+body.auth-page{
+  min-height:100vh;
+  margin:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:56px 16px;
+  background: radial-gradient(1100px 700px at 65% 40%, rgba(62,168,255,.20), transparent 60%),
+              radial-gradient(900px 600px at 25% 70%, rgba(124,135,255,.18), transparent 65%),
+              linear-gradient(180deg, var(--bg0), var(--bg1));
+  color:var(--text);
+  overflow-x:hidden;
 }
-
-body.auth::before{
+body.auth-page::before{
   content:"";
   position:fixed;
   inset:0;
   background:
-    radial-gradient(1200px 600px at 70% 20%, rgba(59,130,246,.35), transparent 60%),
-    radial-gradient(900px 500px at 20% 80%, rgba(96,165,250,.22), transparent 55%),
-    linear-gradient(180deg, rgba(2,6,23,.72), rgba(2,6,23,.72));
-  pointer-events:none;
-  z-index:-1;
+    linear-gradient(180deg, rgba(6,10,18,.55), rgba(6,10,18,.78)),
+    url("./auth-bg.png") center/cover no-repeat;
+  filter:saturate(1.05) contrast(1.05);
+  opacity:.95;
+  z-index:-2;
 }
-
-body.auth::after{
+body.auth-page::after{
   content:"";
   position:fixed;
   inset:0;
-  background: var(--auth-bg, none);
-  background-size:cover;
-  background-position:center;
-  filter:saturate(1.05) contrast(1.03);
+  background:
+    radial-gradient(800px 520px at 50% 45%, rgba(255,255,255,.10), transparent 65%),
+    radial-gradient(900px 600px at 70% 25%, rgba(62,168,255,.18), transparent 60%);
+  z-index:-1;
   pointer-events:none;
-  z-index:-2;
+}
+.auth-card{
+  width:min(520px, 94vw);
+  padding:26px 22px 22px;
+  border-radius:22px;
+  background:rgba(10,18,32,.55);
+  border:1px solid rgba(148,163,184,.22);
+  box-shadow:0 18px 60px rgba(0,0,0,.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.auth-card .brand{
+  text-align:center;
+  margin-bottom:16px;
+}
+.auth-card .brand .logo{
+  font-weight:900;
+  letter-spacing:.18em;
+  font-size:18px;
+  margin:0;
+}
+.auth-card .brand .logo span{ color: var(--accent); }
+.auth-card .brand .sub{
+  margin-top:8px;
+  color:var(--muted);
+  font-size:13px;
+}
+.auth-field label{
+  display:block;
+  margin:12px 0 6px;
+  font-size:13px;
+  color:var(--muted);
+}
+.auth-field input{
+  width:100%;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(148,163,184,.24);
+  background:rgba(2,6,23,.55);
+  color:var(--text);
+  font-size:14px;
+}
+.auth-field input:focus{
+  outline:none;
+  border-color: rgba(62,168,255,.65);
+  box-shadow: 0 0 0 3px rgba(62,168,255,.18);
+}
+.auth-actions{
+  display:flex;
+  gap:10px;
+  margin-top:16px;
+}
+.auth-actions button{
+  flex:1;
+  padding:12px 0;
+  border-radius:999px;
+  border:1px solid rgba(148,163,184,.24);
+  background:rgba(2,6,23,.45);
+  color:var(--text);
+  font-weight:700;
+  cursor:pointer;
+}
+.auth-actions .primary{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border:none;
+  color:#07101a;
+}
+.auth-actions button:hover{ filter:brightness(1.06); }
+.auth-error{
+  margin-top:12px;
+  min-height:18px;
+  font-size:12px;
+  color:var(--bad);
+  white-space:pre-line;
+}
+
+/* Dashboard: prevent "top cut" by centering */
+body.app-page{
+  margin:0;
+  min-height:100vh;
+  background: radial-gradient(900px 520px at 70% 20%, rgba(62,168,255,.18), transparent 60%),
+              radial-gradient(900px 520px at 20% 80%, rgba(124,135,255,.14), transparent 60%),
+              linear-gradient(180deg, var(--bg0), var(--bg1));
+  color:var(--text);
 }

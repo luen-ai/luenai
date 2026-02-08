@@ -1,109 +1,61 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <title>회원가입 | LUEN</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <style>
-    body {
-      margin: 0;
-      background: transparent;
-      color: var(--text);
-      font-family: system-ui, -apple-system, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 22px 12px;
-    }
-
-    .card {
-      width: 100%;
-      max-width: 480px;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 26px 22px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.08);
-      color: var(--text);
-      font-size: 14px;
-      outline: none;
-    }
-
-    button {
-      width: 100%;
-      padding: 11px;
-      margin-top: 8px;
-      background: #3a7afe;
-      border: none;
-      color: #fff;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 15px;
-    }
-
-    button.secondary {
-      background: #444;
-    }
-
-    button:hover {
-      opacity: .9;
-    }
-
-    .error {
-      min-height: 20px;
-      margin-bottom: 10px;
-      color: #ff6b6b;
-      text-align: center;
-      font-size: 14px;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <title>luen AI 프로세서 - 회원가입</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="../shared/theme.css" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon.png" />
+  <meta name="theme-color" content="#0a1120" />
 </head>
 
-<body class="auth" style="--auth-bg: url('./auth_bg.jpg');; --auth-bg: url('./auth_bg.png');">
+<body class="auth-page">
+  <div class="auth-card" role="main" aria-label="회원가입">
+    <div class="brand">
+      <h1 class="logo"><span>LUEN AI</span> PROCESSOR</h1>
+      <div class="sub">회원가입 후 관리자 승인을 받으면 이용할 수 있습니다.</div>
+    </div>
 
-<div class="card">
-  <h1>회원가입</h1>
+    <div class="auth-error" id="errorBox"></div>
 
-  <div id="errorBox" class="error"></div>
+    <div class="auth-field">
+      <label for="username">아이디</label>
+      <input id="username" placeholder="아이디" autocomplete="username" />
+    </div>
 
-  <input id="username" placeholder="아이디">
-  <input id="password" type="password" placeholder="비밀번호">
-  <input id="password2" type="password" placeholder="비밀번호 확인">
-  <input id="name" placeholder="이름">
-  <input id="phone" placeholder="전화번호">
-  <input id="bankAccount" placeholder="계좌번호">
+    <div class="auth-field">
+      <label for="password">비밀번호</label>
+      <input id="password" type="password" placeholder="비밀번호" autocomplete="new-password" />
+    </div>
 
-  <button id="btnSubmit">회원가입</button>
-  <button id="btnCancel" class="secondary">취소</button>
-</div>
+    <div class="auth-field">
+      <label for="password2">비밀번호 확인</label>
+      <input id="password2" type="password" placeholder="비밀번호 확인" autocomplete="new-password" />
+    </div>
 
+    <div class="auth-field">
+      <label for="name">이름</label>
+      <input id="name" placeholder="이름" autocomplete="name" />
+    </div>
 
-<!-- Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <div class="auth-field">
+      <label for="phone">전화번호</label>
+      <input id="phone" placeholder="전화번호" autocomplete="tel" />
+    </div>
 
-<!-- Config -->
-<script src="../shared/config.js"></script>
-<script src="../shared/sb.js"></script>
-<script src="../shared/app.js"></script>
+    <div class="auth-field">
+      <label for="bankAccount">계좌번호</label>
+      <input id="bankAccount" placeholder="계좌번호" />
+    </div>
 
-<script>
+    <div class="auth-actions">
+      <button class="primary" id="btnSubmit" type="button">회원가입</button>
+      <button id="btnCancel" type="button">취소</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script> <script src="../shared/config.js"></script> <script src="../shared/sb.js"></script> <script src="../shared/app.js"></script>
+  <script>
   const sb = window.luen.sb();
 
   async function signup() {
@@ -187,6 +139,5 @@
     location.href = 'index.html';
   });
 </script>
-
 </body>
 </html>

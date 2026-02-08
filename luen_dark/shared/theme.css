@@ -86,3 +86,46 @@ a{color:inherit;}
 .luen-table thead{background: rgba(15,22,32,.9);}
 .luen-table th{color: var(--muted); font-weight: 700;}
 .luen-table tr:last-child td{border-bottom:none;}
+
+
+/* =========================
+   Auth background (C4)
+   - Dark gradient + subtle circuit overlay
+   - No external image needed
+========================= */
+body.auth {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg0);
+}
+body.auth::before {
+  content: "";
+  position: fixed;
+  inset: -25%;
+  z-index: -2;
+  background:
+    radial-gradient(900px 500px at 12% 18%, rgba(96,165,250,.20), transparent 60%),
+    radial-gradient(800px 520px at 88% 22%, rgba(34,211,238,.16), transparent 62%),
+    radial-gradient(900px 650px at 60% 92%, rgba(167,139,250,.12), transparent 58%),
+    linear-gradient(180deg, #0b1220 0%, #070b12 100%);
+  filter: saturate(1.05);
+}
+body.auth::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27800%27%20height%3D%27800%27%20viewBox%3D%270%200%20800%20800%27%3E%0A%3Cg%20fill%3D%27none%27%20stroke%3D%27rgba%2896%2C165%2C250%2C0.35%29%27%20stroke-width%3D%271%27%3E%0A%3Cpath%20d%3D%27M80%20120%20H300%20V220%20H520%20V140%20H720%27/%3E%0A%3Cpath%20d%3D%27M120%20680%20V520%20H260%20V420%20H420%20V300%20H620%20V220%27/%3E%0A%3Cpath%20d%3D%27M60%20360%20H220%20V520%20H360%20V640%20H520%27/%3E%0A%3Cpath%20d%3D%27M520%20720%20V560%20H660%20V440%20H740%27/%3E%0A%3C/g%3E%0A%3Cg%20fill%3D%27rgba%2834%2C211%2C238%2C0.35%29%27%3E%0A%3Ccircle%20cx%3D%27300%27%20cy%3D%27220%27%20r%3D%273%27/%3E%3Ccircle%20cx%3D%27520%27%20cy%3D%27140%27%20r%3D%273%27/%3E%3Ccircle%20cx%3D%27260%27%20cy%3D%27420%27%20r%3D%273%27/%3E%0A%3Ccircle%20cx%3D%27420%27%20cy%3D%27300%27%20r%3D%273%27/%3E%3Ccircle%20cx%3D%27660%27%20cy%3D%27440%27%20r%3D%273%27/%3E%3Ccircle%20cx%3D%27360%27%20cy%3D%27640%27%20r%3D%273%27/%3E%0A%3C/g%3E%0A%3C/svg%3E");
+  background-size: 800px 800px;
+  background-repeat: repeat;
+  opacity: .22;
+  mix-blend-mode: screen;
+  filter: blur(.2px);
+}
+body.auth .vignette {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(80% 70% at 50% 40%, transparent 0%, rgba(0,0,0,.35) 70%, rgba(0,0,0,.58) 100%);
+}

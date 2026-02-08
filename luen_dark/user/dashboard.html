@@ -9,7 +9,8 @@
   <link rel="icon" type="image/png" href="../favicon.png" />
   <link rel="apple-touch-icon" href="../favicon.png" />
 
-  <style>
+  <style>html{height:100%}
+
     * { box-sizing: border-box; }
 
     @font-face {
@@ -20,18 +21,7 @@
       font-display: swap;
     }
 
-    body {
-      margin: 0;
-      font-family: 'SUIT-Regular', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      min-height: 100vh;
-      color: var(--text);
-      background: transparent;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 24px 16px;
-      padding: 24px 16px;
-}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh;overflow-x:hidden;background:radial-gradient(1200px 800px at 60% -10%, rgba(56,130,243,.35), transparent 60%),linear-gradient(180deg,var(--bg0),var(--bg1));background-attachment:fixed;background-repeat:no-repeat;color:var(--text);padding:22px 14px 38px;}
 
     .shell { width: 100%; max-width: 1000px; }
 
@@ -45,7 +35,13 @@
       padding: 18px 20px 22px;
     }
 
-    .topbar {
+    .topbar {position:sticky;top:0;z-index:50;
+      padding:12px 12px;
+      border-radius:18px;
+      background:rgba(15,23,42,.55);
+      border:1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(10px);
+position:sticky;top:0;z-index:50;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -59,7 +55,7 @@
       font-size: 19px;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: #111827;
+      color: var(--text);
       user-select: none;
     }
     .logo span {
@@ -80,23 +76,23 @@
       border-radius: 999px;
       border: 1px solid transparent;
       background: #f3f4f6;
-      color: #111827;
+      color: var(--text);
       cursor: pointer;
       font-size: 13px;
       transition: all 0.16s ease;
     }
     .nav button.active {
-      background: #111827;
+      background: var(--text);
       color: #f9fafb;
       box-shadow: 0 10px 28px rgba(15, 23, 42, 0.35);
       transform: translateY(-1px);
     }
-    .nav button:hover:not(.active) { background: #e5e7eb; }
+    .nav button:hover:not(.active) { background: var(--line); }
 
     .card {
       border-radius: 20px;
-      background: #ffffff;
-      border: 1px solid #e5e7eb;
+      background: var(--card);
+      border: 1px solid var(--line);
       box-shadow: 0 16px 40px rgba(148, 163, 184, 0.25);
       padding: 18px 18px 18px;
       margin-bottom: 14px;
@@ -108,7 +104,7 @@
       font-size: 18px;
       font-weight: 800;
       margin-bottom: 6px;
-      color: #111827;
+      color: var(--text);
     }
 
     .section-sub {
@@ -130,7 +126,7 @@
       padding: 14px 14px;
       border-radius: 16px;
       background: #f9fafb;
-      border: 1px solid #e5e7eb;
+      border: 1px solid var(--line);
       position: relative;
       overflow: hidden;
     }
@@ -149,7 +145,7 @@
       gap:10px;
       padding:10px 12px;
       border-radius:14px;
-      border:1px solid #e5e7eb;
+      border:1px solid var(--line);
       background:#f9fafb;
     }
     .timeline-left{
@@ -165,8 +161,8 @@
     .timeline-msg{
       font-size:13px;
       font-weight:800;
-      color:#111827;
-      white-space:nowrap;
+      color:var(--text);
+      var(--card)-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
     }
@@ -176,22 +172,22 @@
       padding:4px 10px;
       border-radius:999px;
       border:1px solid transparent;
-      white-space:nowrap;
+      var(--card)-space:nowrap;
     }
     .timeline-up{ background:#fee2e2; color:#dc2626; border-color:#fecaca; }
     .timeline-down{ background:#dbeafe; color:#2563eb; border-color:#bfdbfe; }
-    .timeline-same{ background:#e5e7eb; color:#6b7280; border-color:#d1d5db; }
+    .timeline-same{ background:var(--line); color:#6b7280; border-color:#d1d5db; }
 
     /* ✅ 숫자+배지 분리 */
     .value-main {
       font-size: 22px;
       font-weight: 900;
-      color: #111827;
+      color: var(--text);
       display: inline-flex;
       align-items: center;
       gap: 8px;
       line-height: 1.1;
-      white-space: nowrap;
+      var(--card)-space: nowrap;
     }
     .value-main .num { display:inline-block; }
     .value-main .badge { display:inline-flex; }
@@ -274,12 +270,12 @@
       align-items: center;
       gap: 4px;
       transform: translateY(-1px);
-      white-space: nowrap;
+      var(--card)-space: nowrap;
       user-select: none;
     }
     .delta-up{ background:#fee2e2; color:#dc2626; border-color:#fecaca; }
     .delta-down{ background:#dbeafe; color:#2563eb; border-color:#bfdbfe; }
-    .delta-same{ background:#e5e7eb; color:#6b7280; border-color:#d1d5db; }
+    .delta-same{ background:var(--line); color:#6b7280; border-color:#d1d5db; }
 
     /* ✅ 상태 배지 */
     .status-pill {
@@ -295,7 +291,7 @@
     .status-wait .status-dot { background: #facc15; }
     .status-run  { background: #dcfce7; color: #166534; border: 1px solid #22c55e; }
     .status-run  .status-dot { background: #22c55e; }
-    .status-done { background: #e5e7eb; color: #374151; border: 1px solid #9ca3af; }
+    .status-done { background: var(--line); color: #374151; border: 1px solid #9ca3af; }
     .status-done .status-dot { background: #6b7280; }
 
     .info-text {
@@ -307,23 +303,23 @@
 
     /* ✅ 진행 단계 */
     .steps-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
-    .step { flex:1; min-width:160px; padding:10px 11px; border-radius:14px; border:1px solid #e5e7eb; background:#f9fafb; font-size:12px; color:#4b5563; position:relative; }
-    .step-title { font-size:13px; font-weight:800; margin-bottom:4px; color:#111827; }
-    .step-tag { position:absolute; top:8px; right:10px; font-size:10px; padding:2px 7px; border-radius:999px; background: rgba(255,255,255,.08); border:1px solid #e5e7eb; color:#6b7280; }
+    .step { flex:1; min-width:160px; padding:10px 11px; border-radius:14px; border:1px solid var(--line); background:#f9fafb; font-size:12px; color:#4b5563; position:relative; }
+    .step-title { font-size:13px; font-weight:800; margin-bottom:4px; color:var(--text); }
+    .step-tag { position:absolute; top:8px; right:10px; font-size:10px; padding:2px 7px; border-radius:999px; background: rgba(255,255,255,.08); border:1px solid var(--line); color:#6b7280; }
     .step.active { border-color:#4f46e5; box-shadow: 0 0 0 1px rgba(79,70,229,0.25); background:#eef2ff; }
-    .step.active .step-tag { background:#4f46e5; border-color:#4f46e5; color:#e5e7eb; }
+    .step.active .step-tag { background:#4f46e5; border-color:#4f46e5; color:var(--line); }
 
     /* ✅ 카드 헤더 */
     .card-head-row{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
     .mini-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
     .last-updated{ font-size:12px; color:#6b7280; }
-    .btn-refresh{ border:none; background:#f3f4f6; color:#111827; border-radius:999px; padding:6px 10px; font-size:12px; cursor:pointer; }
-    .btn-refresh:hover{ background:#e5e7eb; }
+    .btn-refresh{ border:none; background:#f3f4f6; color:var(--text); border-radius:999px; padding:6px 10px; font-size:12px; cursor:pointer; }
+    .btn-refresh:hover{ background:var(--line); }
 
     .toggle{
       display:inline-flex;
       background:#f3f4f6;
-      border:1px solid #e5e7eb;
+      border:1px solid var(--line);
       border-radius:999px;
       padding:3px;
       gap:3px;
@@ -339,27 +335,27 @@
       font-weight:900;
     }
     .toggle button.active{
-      background:#111827;
-      color:#fff;
+      background:var(--text);
+      color:var(--card);
       box-shadow: 0 8px 18px rgba(15,23,42,0.18);
     }
 
     .error-inline{ margin-top:10px; font-size:12px; color:#b91c1c; display:none; }
     .error-inline.show{ display:block; }
 
-    .chart-wrap{ margin-top:12px; padding:12px; border-radius:16px; border:1px solid #e5e7eb; background:#ffffff; }
+    .chart-wrap{ margin-top:12px; padding:12px; border-radius:16px; border:1px solid var(--line); background:var(--card); }
     .chart-title-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
-    .chart-title{ font-size:13px; font-weight:900; color:#111827; }
+    .chart-title{ font-size:13px; font-weight:900; color:var(--text); }
     canvas{ width:100%; height:120px; display:block; }
 
     /* ✅ 소개 */
     .intro-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 18px; }
     @media (max-width: 720px) { .intro-grid { grid-template-columns: minmax(0, 1fr); } }
     .intro-badge { display:inline-flex; padding:4px 11px; border-radius:999px; font-size:11px; background:#eef2ff; color:#4f46e5; margin-bottom:10px; }
-    .intro-title { font-size:18px; font-weight:900; margin-bottom:8px; color:#111827; }
-    .intro-text { font-size:14px; color:#4b5563; line-height:1.7; white-space:pre-line; }
-    .intro-box { padding:12px; border-radius:16px; background:#f9fafb; border:1px solid #e5e7eb; margin-top:10px; }
-    .intro-box-title { font-size:14px; font-weight:800; margin-bottom:6px; color:#111827; }
+    .intro-title { font-size:18px; font-weight:900; margin-bottom:8px; color:var(--text); }
+    .intro-text { font-size:14px; color:#4b5563; line-height:1.7; var(--card)-space:pre-line; }
+    .intro-box { padding:12px; border-radius:16px; background:#f9fafb; border:1px solid var(--line); margin-top:10px; }
+    .intro-box-title { font-size:14px; font-weight:800; margin-bottom:6px; color:var(--text); }
     .intro-points { font-size:13px; color:#374151; list-style:none; padding:0; margin:0; }
     .intro-points li { margin-bottom:6px; }
     .scenario-highlight { font-weight:900; color:#4f46e5; }
@@ -368,10 +364,10 @@
     .account-grid { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:10px; font-size:13px; }
     @media (max-width: 720px) { .account-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
     .acct-label { font-size:12px; color:#6b7280; margin-bottom:2px; }
-    .acct-value { font-size:14px; font-weight:600; color:#111827; }
+    .acct-value { font-size:14px; font-weight:600; color:var(--text); }
     .account-header-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:10px; }
     .btn-gear { border:none; background:#f3f4f6; border-radius:999px; padding:5px 8px; font-size:11px; cursor:pointer; color:#4b5563; }
-    .btn-gear:hover { background:#e5e7eb; }
+    .btn-gear:hover { background:var(--line); }
 
     /* ✅ 모달 */
     .modal-backdrop {
@@ -379,9 +375,9 @@
       display: flex; justify-content: center; align-items: center; z-index: 50;
     }
     .modal {
-      width: 100%; max-width: 360px; background: #ffffff; border-radius: 18px;
+      width: 100%; max-width: 360px; background: var(--card); border-radius: 18px;
       padding: 18px 18px 16px; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.45);
-      border: 1px solid #e5e7eb;
+      border: 1px solid var(--line);
     }
     .modal-title { font-size: 16px; font-weight: 900; margin-bottom: 10px; }
     .modal label { display: block; font-size: 13px; margin-top: 10px; margin-bottom: 4px; color: #374151; }
@@ -398,7 +394,13 @@
     .hidden { display:none; }
 
     @media (max-width: 640px) {
-      .topbar { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .topbar {position:sticky;top:0;z-index:50;
+      padding:12px 12px;
+      border-radius:18px;
+      background:rgba(15,23,42,.55);
+      border:1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(10px);
+position:sticky;top:0;z-index:50; flex-direction: column; align-items: flex-start; gap: 10px; }
       .nav { width: 100%; justify-content: space-between; }
       .value-row { flex-direction: column; }
       canvas { height: 140px; }

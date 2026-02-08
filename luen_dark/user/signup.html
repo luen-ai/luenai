@@ -2,142 +2,239 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>luen AI 프로세서 - 회원가입</title>
+  <title>LUEN AI PROCESSOR</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="../shared/theme.css" />
-  <link rel="icon" type="image/png" sizes="32x32" href="./favicon.png" />
-  <meta name="theme-color" content="#0a1120" />
+  <link rel="icon" type="image/png" href="./favicon.png" />
 </head>
+<body class="auth-page" data-default-tab="signup">
+  <main class="auth-shell">
+    <section class="auth-card glass">
+      <header class="auth-head">
+        <div class="auth-brand">
+          <div class="auth-logo">LUEN <span>AI</span></div>
+          <div class="auth-sub">PROCESSOR</div>
+        </div>
+        <div class="auth-desc">AI 투자 프로세서를 이용하려면 로그인이 필요합니다.</div>
+      </header>
 
-<body class="auth-page">
-  <div class="auth-card" role="main" aria-label="회원가입">
-    <div class="brand">
-      <h1 class="logo"><span>LUEN AI</span> PROCESSOR</h1>
-      <div class="sub">회원가입 후 관리자 승인을 받으면 이용할 수 있습니다.</div>
-    </div>
+      <div class="auth-tabs" role="tablist" aria-label="auth tabs">
+        <button type="button" class="auth-tab" data-tab="login">로그인</button>
+        <button type="button" class="auth-tab" data-tab="signup">회원가입</button>
+      </div>
 
-    <div class="auth-error" id="errorBox"></div>
+      <!-- 로그인 -->
+      <form class="auth-form" data-pane="login" autocomplete="on" novalidate>
+        <label class="auth-label" for="loginId">아이디</label>
+        <input class="auth-input" id="loginId" type="text" placeholder="아이디를 입력하세요" />
 
-    <div class="auth-field">
-      <label for="username">아이디</label>
-      <input id="username" placeholder="아이디" autocomplete="username" />
-    </div>
+        <label class="auth-label" for="loginPw">비밀번호</label>
+        <div class="auth-input-wrap">
+          <input class="auth-input" id="loginPw" type="password" placeholder="비밀번호를 입력하세요" />
+          <button type="button" class="auth-eye" id="btnTogglePw" aria-label="비밀번호 보기/숨기기">👁</button>
+        </div>
 
-    <div class="auth-field">
-      <label for="password">비밀번호</label>
-      <input id="password" type="password" placeholder="비밀번호" autocomplete="new-password" />
-    </div>
+        <div class="auth-actions">
+          <button class="auth-btn primary" id="btnLogin" type="button">로그인</button>
+          <button class="auth-btn ghost" id="btnGoSignup" type="button">회원가입</button>
+        </div>
 
-    <div class="auth-field">
-      <label for="password2">비밀번호 확인</label>
-      <input id="password2" type="password" placeholder="비밀번호 확인" autocomplete="new-password" />
-    </div>
+        <div class="auth-msg err" id="errorBox"></div>
+      </form>
 
-    <div class="auth-field">
-      <label for="name">이름</label>
-      <input id="name" placeholder="이름" autocomplete="name" />
-    </div>
+      <!-- 회원가입 -->
+      <form class="auth-form" data-pane="signup" autocomplete="off" novalidate>
+        <label class="auth-label" for="suUsername">아이디</label>
+        <input class="auth-input" id="suUsername" type="text" placeholder="아이디를 입력하세요" />
 
-    <div class="auth-field">
-      <label for="phone">전화번호</label>
-      <input id="phone" placeholder="전화번호" autocomplete="tel" />
-    </div>
+        <label class="auth-label" for="suPassword">비밀번호</label>
+        <input class="auth-input" id="suPassword" type="password" placeholder="비밀번호를 입력하세요" />
 
-    <div class="auth-field">
-      <label for="bankAccount">계좌번호</label>
-      <input id="bankAccount" placeholder="계좌번호" />
-    </div>
+        <label class="auth-label" for="suPassword2">비밀번호 확인</label>
+        <input class="auth-input" id="suPassword2" type="password" placeholder="비밀번호 확인" />
 
-    <div class="auth-actions">
-      <button class="primary" id="btnSubmit" type="button">회원가입</button>
-      <button id="btnCancel" type="button">취소</button>
-    </div>
-  </div>
+        <label class="auth-label" for="suName">이름</label>
+        <input class="auth-input" id="suName" type="text" placeholder="이름" />
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script> <script src="../shared/config.js"></script> <script src="../shared/sb.js"></script> <script src="../shared/app.js"></script>
+        <label class="auth-label" for="suPhone">전화번호</label>
+        <input class="auth-input" id="suPhone" type="text" placeholder="전화번호" />
+
+        <label class="auth-label" for="suBank">계좌번호</label>
+        <input class="auth-input" id="suBank" type="text" placeholder="계좌번호" />
+
+        <div class="auth-actions">
+          <button class="auth-btn primary" id="btnCreate" type="button">회원가입</button>
+          <button class="auth-btn ghost" id="btnGoLogin" type="button">취소</button>
+        </div>
+
+        <div class="auth-msg err" id="signupError"></div>
+        <div class="auth-msg ok" id="signupOk"></div>
+      </form>
+    </section>
+  </main>
+
+  <!-- ✅ 로딩 순서 고정 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../shared/config.js"></script>
+  <script src="../shared/sb.js"></script>
+  <script src="../shared/app.js"></script>
+
   <script>
-  const sb = window.luen.sb();
+  (function() {
+    const qs = (sel) => document.querySelector(sel);
+    const qsa = (sel) => Array.from(document.querySelectorAll(sel));
 
-  async function signup() {
+    // ✅ sb는 반드시 함수 호출로 "클라이언트"를 가져온다
+    const sb = (window.luen && typeof window.luen.sb === 'function') ? window.luen.sb() : null;
 
-    const username = document.getElementById('username').value.trim();
-    const pw = document.getElementById('password').value.trim();
-    const pw2 = document.getElementById('password2').value.trim();
-    const name = document.getElementById('name').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const bankAccount = document.getElementById('bankAccount').value.trim();
-    const errorBox = document.getElementById('errorBox');
+    function showFatal(msg) {
+      const box = qs('#errorBox');
+      if (box) box.textContent = msg;
+      console.error('[LUEN] init failed:', msg, sb);
+    }
 
-    errorBox.textContent = '';
-
-    if (!username || !pw || !pw2 || !name || !phone || !bankAccount) {
-      errorBox.textContent = '모든 항목을 입력해주세요.';
+    if (!sb || typeof sb.from !== 'function') {
+      document.addEventListener('DOMContentLoaded', () => {
+        showFatal('초기화 오류: Supabase 연결이 준비되지 않았습니다.\nshared/config.js / shared/sb.js 로딩을 확인하세요.');
+      });
       return;
     }
 
-    if (pw !== pw2) {
-      errorBox.textContent = '비밀번호가 서로 일치하지 않습니다.';
-      return;
+    function setTab(tab) {
+      qsa('.auth-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      qsa('.auth-form').forEach(p => p.style.display = (p.dataset.pane === tab ? 'block' : 'none'));
+      // 메시지 초기화
+      const e1 = qs('#errorBox'); if (e1) e1.textContent = '';
+      const e2 = qs('#signupError'); if (e2) e2.textContent = '';
+      const ok = qs('#signupOk'); if (ok) ok.textContent = '';
     }
 
-    try {
+    async function login() {
+      const username = (qs('#loginId').value || '').trim();
+      const password = (qs('#loginPw').value || '').trim();
+      const errorBox = qs('#errorBox');
+      errorBox.textContent = '';
 
-      /* 아이디 중복 체크 */
-      const { data: exists, error: checkErr } = await sb
+      if (!username || !password) {
+        errorBox.textContent = '아이디와 비밀번호를 입력해주세요.';
+        return;
+      }
+
+      const { data, error } = await sb
+        .from('app_users')
+        .select('id, username, password_hash, approved, name, amount, bank_account, status, realized_amount, role')
+        .eq('username', username)
+        .eq('password_hash', password)
+        .maybeSingle();
+
+      if (error || !data) {
+        console.error('[login] error:', error);
+        errorBox.textContent = '아이디 또는 비밀번호가 올바르지 않습니다.';
+        return;
+      }
+
+      if (data.approved === false) {
+        errorBox.textContent = '관리자 승인 대기 중입니다.';
+        return;
+      }
+
+      const safeUser = { ...data };
+      delete safeUser.password_hash;
+      localStorage.setItem('luenai_user_logged_in', 'true');
+      localStorage.setItem('luenai_current_user', JSON.stringify(safeUser));
+      window.location.href = 'dashboard.html';
+    }
+
+    async function signup() {
+      const username = (qs('#suUsername').value || '').trim();
+      const pw = (qs('#suPassword').value || '').trim();
+      const pw2 = (qs('#suPassword2').value || '').trim();
+      const name = (qs('#suName').value || '').trim();
+      const phone = (qs('#suPhone').value || '').trim();
+      const bank = (qs('#suBank').value || '').trim();
+
+      const err = qs('#signupError');
+      const ok = qs('#signupOk');
+      err.textContent = '';
+      ok.textContent = '';
+
+      if (!username || !pw || !pw2) {
+        err.textContent = '아이디/비밀번호를 입력해주세요.';
+        return;
+      }
+      if (pw !== pw2) {
+        err.textContent = '비밀번호가 일치하지 않습니다.';
+        return;
+      }
+
+      // 중복 체크
+      const { data: exists, error: exErr } = await sb
         .from('app_users')
         .select('id')
         .eq('username', username)
         .maybeSingle();
 
-      if (checkErr) {
-        console.error(checkErr);
-        errorBox.textContent = '서버 오류';
+      if (exErr) {
+        console.error('[signup] check error:', exErr);
+        err.textContent = '서버 오류: 잠시 후 다시 시도해주세요.';
         return;
       }
-
       if (exists) {
-        errorBox.textContent = '이미 사용중인 아이디입니다.';
+        err.textContent = '이미 사용중인 아이디입니다.';
         return;
       }
 
-      /* 회원 생성 */
-      const { error } = await sb
+      const { error: insErr } = await sb
         .from('app_users')
-        .insert({
+        .insert([{ 
           username,
-          password_hash: pw,   // ⚠️ 테스트용 (나중에 해시화)
-          name,
-          phone,
-          bank_account: bankAccount,
+          password_hash: pw,   // ⚠️ 현재 구조: 테스트용 평문 저장
+          approved: false,
+          role: 'user',
+          name: name || null,
+          phone: phone || null,
+          bank_account: bank || null,
           amount: 0,
           realized_amount: 0,
-          status: 'pending',
-          approved: false,
-          role: 'user'
-        });
+          status: '대기중'
+        }]);
 
-      if (error) {
-        console.error(error);
-        errorBox.textContent = '회원가입 실패';
+      if (insErr) {
+        console.error('[signup] insert error:', insErr);
+        err.textContent = '회원가입 실패: 입력값을 확인해주세요.';
         return;
       }
 
-      alert('회원가입 완료! 관리자 승인 후 로그인 가능합니다.');
-      location.href = 'index.html';
-
-    } catch (e) {
-      console.error(e);
-      errorBox.textContent = '네트워크 오류';
+      ok.textContent = '회원가입이 완료되었습니다. 관리자 승인 후 로그인 가능합니다.';
+      setTimeout(() => setTab('login'), 700);
     }
-  }
 
+    document.addEventListener('DOMContentLoaded', () => {
+      // tabs
+      const defaultTab = document.body.dataset.defaultTab || 'login';
+      setTab(defaultTab);
 
-  /* 버튼 연결 */
-  document.getElementById('btnSubmit').addEventListener('click', signup);
+      qsa('.auth-tab').forEach(btn => btn.addEventListener('click', () => setTab(btn.dataset.tab)));
 
-  document.getElementById('btnCancel').addEventListener('click', () => {
-    location.href = 'index.html';
-  });
-</script>
+      qs('#btnGoSignup').addEventListener('click', () => setTab('signup'));
+      qs('#btnGoLogin').addEventListener('click', () => setTab('login'));
+      qs('#btnLogin').addEventListener('click', login);
+      qs('#btnCreate').addEventListener('click', signup);
+
+      qs('#loginPw').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') login();
+      });
+      qs('#suBank').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') signup();
+      });
+
+      // pw toggle
+      const pw = qs('#loginPw');
+      qs('#btnTogglePw').addEventListener('click', () => {
+        pw.type = pw.type === 'password' ? 'text' : 'password';
+      });
+    });
+  })();
+  </script>
 </body>
 </html>

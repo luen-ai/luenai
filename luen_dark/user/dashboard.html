@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>luen AI 프로세서 - 대시보드</title>
-  <link rel="stylesheet" href="../shared/theme.css" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <link rel="icon" type="image/png" href="../favicon.png" />
   <link rel="apple-touch-icon" href="../favicon.png" />
@@ -24,26 +23,23 @@
       margin: 0;
       font-family: 'SUIT-Regular', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       min-height: 100vh;
-      color: #0f172a;
+      color: var(--text);
       background:
-        radial-gradient(circle at 0% 0%, rgba(129, 140, 248, 0.25), transparent 55%),
-        radial-gradient(circle at 100% 100%, rgba(52, 211, 153, 0.2), transparent 55%),
-        linear-gradient(135deg, #eef2ff, #fefce8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 18px 12px 28px;
+        radial-gradient(circle at 0% 0%, rgba(63, 182, 255, 0.22), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(124, 140, 255, 0.18), transparent 55%),
+        linear-gradient(135deg, var(--bg0), var(--bg1));
+      padding: 28px 12px 40px;
     }
 
     .shell { width: 100%; max-width: 1000px; }
 
     .frame {
       border-radius: 26px;
-      background: rgba(255, 255, 255, 0.92);
+      background: rgba(15, 32, 55, 0.92);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(226, 232, 240, 0.9);
-      box-shadow: 0 20px 60px rgba(148, 163, 184, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(31, 53, 82, 0.9);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);
       padding: 18px 20px 22px;
     }
 
@@ -61,7 +57,7 @@
       font-size: 19px;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: #111827;
+      color: var(--text);
       user-select: none;
     }
     .logo span {
@@ -82,13 +78,13 @@
       border-radius: 999px;
       border: 1px solid transparent;
       background: #f3f4f6;
-      color: #111827;
+      color: var(--text);
       cursor: pointer;
       font-size: 13px;
       transition: all 0.16s ease;
     }
     .nav button.active {
-      background: #111827;
+      background: var(--text);
       color: #f9fafb;
       box-shadow: 0 10px 28px rgba(15, 23, 42, 0.35);
       transform: translateY(-1px);
@@ -110,7 +106,7 @@
       font-size: 18px;
       font-weight: 800;
       margin-bottom: 6px;
-      color: #111827;
+      color: var(--text);
     }
 
     .section-sub {
@@ -167,7 +163,7 @@
     .timeline-msg{
       font-size:13px;
       font-weight:800;
-      color:#111827;
+      color: var(--text);
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
@@ -188,7 +184,7 @@
     .value-main {
       font-size: 22px;
       font-weight: 900;
-      color: #111827;
+      color: var(--text);
       display: inline-flex;
       align-items: center;
       gap: 8px;
@@ -310,7 +306,7 @@
     /* ✅ 진행 단계 */
     .steps-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
     .step { flex:1; min-width:160px; padding:10px 11px; border-radius:14px; border:1px solid #e5e7eb; background:#f9fafb; font-size:12px; color:#4b5563; position:relative; }
-    .step-title { font-size:13px; font-weight:800; margin-bottom:4px; color:#111827; }
+    .step-title { font-size:13px; font-weight:800; margin-bottom:4px; color: var(--text); }
     .step-tag { position:absolute; top:8px; right:10px; font-size:10px; padding:2px 7px; border-radius:999px; background:#fff; border:1px solid #e5e7eb; color:#6b7280; }
     .step.active { border-color:#4f46e5; box-shadow: 0 0 0 1px rgba(79,70,229,0.25); background:#eef2ff; }
     .step.active .step-tag { background:#4f46e5; border-color:#4f46e5; color:#e5e7eb; }
@@ -319,7 +315,7 @@
     .card-head-row{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
     .mini-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
     .last-updated{ font-size:12px; color:#6b7280; }
-    .btn-refresh{ border:none; background:#f3f4f6; color:#111827; border-radius:999px; padding:6px 10px; font-size:12px; cursor:pointer; }
+    .btn-refresh{ border:none; background:#f3f4f6; color: var(--text); border-radius:999px; padding:6px 10px; font-size:12px; cursor:pointer; }
     .btn-refresh:hover{ background:#e5e7eb; }
 
     .toggle{
@@ -341,7 +337,7 @@
       font-weight:900;
     }
     .toggle button.active{
-      background:#111827;
+      background:var(--text);
       color:#fff;
       box-shadow: 0 8px 18px rgba(15,23,42,0.18);
     }
@@ -351,17 +347,17 @@
 
     .chart-wrap{ margin-top:12px; padding:12px; border-radius:16px; border:1px solid #e5e7eb; background:#ffffff; }
     .chart-title-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
-    .chart-title{ font-size:13px; font-weight:900; color:#111827; }
+    .chart-title{ font-size:13px; font-weight:900; color: var(--text); }
     canvas{ width:100%; height:120px; display:block; }
 
     /* ✅ 소개 */
     .intro-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 18px; }
     @media (max-width: 720px) { .intro-grid { grid-template-columns: minmax(0, 1fr); } }
     .intro-badge { display:inline-flex; padding:4px 11px; border-radius:999px; font-size:11px; background:#eef2ff; color:#4f46e5; margin-bottom:10px; }
-    .intro-title { font-size:18px; font-weight:900; margin-bottom:8px; color:#111827; }
+    .intro-title { font-size:18px; font-weight:900; margin-bottom:8px; color: var(--text); }
     .intro-text { font-size:14px; color:#4b5563; line-height:1.7; white-space:pre-line; }
     .intro-box { padding:12px; border-radius:16px; background:#f9fafb; border:1px solid #e5e7eb; margin-top:10px; }
-    .intro-box-title { font-size:14px; font-weight:800; margin-bottom:6px; color:#111827; }
+    .intro-box-title { font-size:14px; font-weight:800; margin-bottom:6px; color: var(--text); }
     .intro-points { font-size:13px; color:#374151; list-style:none; padding:0; margin:0; }
     .intro-points li { margin-bottom:6px; }
     .scenario-highlight { font-weight:900; color:#4f46e5; }
@@ -370,7 +366,7 @@
     .account-grid { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:10px; font-size:13px; }
     @media (max-width: 720px) { .account-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
     .acct-label { font-size:12px; color:#6b7280; margin-bottom:2px; }
-    .acct-value { font-size:14px; font-weight:600; color:#111827; }
+    .acct-value { font-size:14px; font-weight:600; color: var(--text); }
     .account-header-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:10px; }
     .btn-gear { border:none; background:#f3f4f6; border-radius:999px; padding:5px 8px; font-size:11px; cursor:pointer; color:#4b5563; }
     .btn-gear:hover { background:#e5e7eb; }
@@ -405,44 +401,7 @@
       .value-row { flex-direction: column; }
       canvas { height: 140px; }
     }
-  
-    /* ===== Dark theme override (LUEN) ===== */
-    body { background: var(--bg0) !important; color: var(--text) !important; }
-    .page, .wrap, .container { background: transparent !important; }
-    .nav, .topbar, .header {
-      background: var(--card) !important;
-      border-color: var(--line) !important;
-      color: var(--text) !important;
-      box-shadow: var(--shadow) !important;
-    }
-    .nav button, .tab, .chip, .pill, .badge {
-      background: #0f1720 !important;
-      color: var(--text) !important;
-      border-color: var(--line) !important;
-    }
-    .nav button.active, .tab.active, .btn-primary, button.primary {
-      background: linear-gradient(135deg, var(--accent), var(--accent2)) !important;
-      color: #0b0f14 !important;
-      border: none !important;
-    }
-    .card, .panel {
-      background: var(--card) !important;
-      border-color: var(--line) !important;
-      color: var(--text) !important;
-      box-shadow: var(--shadow) !important;
-    }
-    h1,h2,h3,.section-title,.title { color: var(--text) !important; }
-    .muted, .sub, .hint, .desc, .small { color: var(--muted) !important; }
-    input, select, textarea {
-      background: #0f1720 !important;
-      border-color: var(--line) !important;
-      color: var(--text) !important;
-    }
-    table th { color: var(--muted) !important; }
-    table td, table th { border-bottom-color: var(--line) !important; }
-    a { color: rgba(96,165,250,.95) !important; }
-
-</style>
+  </style>
 </head>
 
 <body>

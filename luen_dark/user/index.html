@@ -21,17 +21,19 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      background: var(--bg0);
-      padding: 18px 12px;
+      background: linear-gradient(135deg, rgba(7,17,31,0.88), rgba(10,26,47,0.88)), url("../shared/auth-bg.png") center/cover no-repeat fixed;
+      padding: 48px 14px;
     }
     .wrapper {
       width: 100%;
       max-width: 420px;
       padding: 26px 24px 22px;
       border-radius: 18px;
-      background: var(--card);
-      border: 1px solid var(--line);
+      background: rgba(15, 32, 55, 0.72);
+      border: 1px solid rgba(255,255,255,0.14);
       box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
     }
     .brand {
       display: flex;
@@ -68,7 +70,7 @@
       width: 100%;
       padding: 10px 12px;
       border-radius: 10px;
-      border: 1px solid var(--line);
+      border: 1px solid rgba(255,255,255,0.14);
       background: #0f1720;
       color: var(--text);
       font-size: 14px;
@@ -101,7 +103,7 @@
     .btn-signup {
       background: #0f1720;
       color: var(--text);
-      border: 1px solid var(--line);
+      border: 1px solid rgba(255,255,255,0.14);
     }
     .btn-login:hover { filter: brightness(1.03); }
     .btn-signup:hover { filter: brightness(1.08); }
@@ -116,8 +118,7 @@
   </style>
 </head>
 
-<body class="auth">
-  <div class="vignette"></div>
+<body>
   <div class="wrapper">
     <div class="brand"></div>
     <div class="logo"><span>luen AI</span> PROCESSOR</div>

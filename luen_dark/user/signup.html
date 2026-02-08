@@ -8,24 +8,25 @@
   <style>
     body {
       margin: 0;
-      background: #121212;
-      color: #eee;
+      background: transparent;
+      color: var(--text);
       font-family: system-ui, -apple-system, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-    
-      padding: 48px 14px;
+      padding: 22px 12px;
     }
 
     .card {
       width: 100%;
-      max-width: 420px;
-      background: #1e1e1e;
-      padding: 28px;
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(0,0,0,.6);
+      max-width: 480px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 26px 22px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
     }
 
     h1 {
@@ -35,12 +36,13 @@
 
     input {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
-      background: #2a2a2a;
-      border: 1px solid #333;
-      color: #fff;
-      border-radius: 5px;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
     }
 
     button {
@@ -71,9 +73,10 @@
       font-size: 14px;
     }
   </style>
+  <link rel="stylesheet" href="../shared/theme.css" />
 </head>
 
-<body>
+<body class="auth" style="--auth-bg: url('./auth_bg.jpg');; --auth-bg: url('./auth_bg.png');">
 
 <div class="card">
   <h1>회원가입</h1>

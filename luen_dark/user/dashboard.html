@@ -1,9 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <title>luen AI 프로세서 - 대시보드</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../shared/theme.css" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <link rel="icon" type="image/png" href="../favicon.png" />
   <link rel="apple-touch-icon" href="../favicon.png" />
@@ -404,7 +405,44 @@
       .value-row { flex-direction: column; }
       canvas { height: 140px; }
     }
-  </style>
+  
+    /* ===== Dark theme override (LUEN) ===== */
+    body { background: var(--bg0) !important; color: var(--text) !important; }
+    .page, .wrap, .container { background: transparent !important; }
+    .nav, .topbar, .header {
+      background: var(--card) !important;
+      border-color: var(--line) !important;
+      color: var(--text) !important;
+      box-shadow: var(--shadow) !important;
+    }
+    .nav button, .tab, .chip, .pill, .badge {
+      background: #0f1720 !important;
+      color: var(--text) !important;
+      border-color: var(--line) !important;
+    }
+    .nav button.active, .tab.active, .btn-primary, button.primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2)) !important;
+      color: #0b0f14 !important;
+      border: none !important;
+    }
+    .card, .panel {
+      background: var(--card) !important;
+      border-color: var(--line) !important;
+      color: var(--text) !important;
+      box-shadow: var(--shadow) !important;
+    }
+    h1,h2,h3,.section-title,.title { color: var(--text) !important; }
+    .muted, .sub, .hint, .desc, .small { color: var(--muted) !important; }
+    input, select, textarea {
+      background: #0f1720 !important;
+      border-color: var(--line) !important;
+      color: var(--text) !important;
+    }
+    table th { color: var(--muted) !important; }
+    table td, table th { border-bottom-color: var(--line) !important; }
+    a { color: rgba(96,165,250,.95) !important; }
+
+</style>
 </head>
 
 <body>

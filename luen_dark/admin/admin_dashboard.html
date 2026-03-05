@@ -296,10 +296,10 @@
     let __sortAsc = true;
 
 function checkAdmin() {
-      const flag = localStorage.getItem('luenai_admin_logged_in');
-      if (flag !== 'true') {
-        alert('관리자 로그인이 필요합니다.');
-        window.location.href = 'login.html';
+      const flag = localStorage.getItem('luen_admin_login'); // ✅ 로그인 페이지에서 저장하는 키로 통일
+if (flag !== 'true') {
+  alert('관리자 로그인이 필요합니다.');
+  window.location.href = 'login.html';
       }
     }
 

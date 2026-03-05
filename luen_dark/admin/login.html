@@ -1,44 +1,45 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LUEN Admin Login</title>
+
+<title>LUEN Admin</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
+
 body{
-font-family:Arial, Helvetica, sans-serif;
-background:linear-gradient(120deg,#020617,#020617,#0f172a,#111827);
-color:white;
+margin:0;
 height:100vh;
 display:flex;
 align-items:center;
 justify-content:center;
-margin:0;
+background:linear-gradient(120deg,#020617,#020617,#0f172a,#111827);
+font-family:Arial;
+color:white;
 }
 
 .login-box{
-background:rgba(20,20,30,0.8);
+width:340px;
 padding:40px;
-border-radius:12px;
-width:320px;
-box-shadow:0 10px 30px rgba(0,0,0,0.4);
+background:rgba(15,23,42,0.85);
+border-radius:10px;
+box-shadow:0 10px 40px rgba(0,0,0,0.5);
 }
 
 h2{
 margin-bottom:20px;
-font-weight:600;
 }
 
 input{
 width:100%;
 padding:12px;
 margin-bottom:12px;
-border-radius:6px;
 border:none;
-outline:none;
+border-radius:6px;
 }
 
 button{
@@ -56,12 +57,14 @@ button:hover{
 background:#1d4ed8;
 }
 
-.error{
+#error{
 margin-top:10px;
 color:#f87171;
 font-size:14px;
 }
+
 </style>
+
 </head>
 
 <body>
@@ -70,14 +73,15 @@ font-size:14px;
 
 <h2>LUEN 관리자 로그인</h2>
 
-<input id="admin_id" placeholder="관리자 아이디">
+<input id="admin_id" placeholder="아이디">
 <input id="admin_pw" type="password" placeholder="비밀번호">
 
 <button onclick="adminLogin()">로그인</button>
 
-<div class="error" id="error"></div>
+<div id="error"></div>
 
 </div>
+
 
 <script>
 
@@ -94,8 +98,6 @@ const errorBox = document.getElementById("error")
 
 errorBox.innerText=""
 
-try{
-
 const { data , error } = await supabase
 .from("users")
 .select("*")
@@ -104,25 +106,22 @@ const { data , error } = await supabase
 .single()
 
 if(error || !data){
+
 errorBox.innerText="관리자 계정을 찾을 수 없습니다."
 return
+
 }
 
 if(pw !== data.password_hash){
+
 errorBox.innerText="비밀번호가 올바르지 않습니다."
 return
+
 }
 
 localStorage.setItem("luen_admin",JSON.stringify(data))
 
 window.location.href="admin_dashboard.html"
-
-}catch(e){
-
-console.error(e)
-errorBox.innerText="서버와 통신 중 오류가 발생했습니다."
-
-}
 
 }
 

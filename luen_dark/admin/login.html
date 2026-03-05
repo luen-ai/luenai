@@ -134,10 +134,24 @@
   <script src="../shared/config.js"></script>
   <script src="../shared/sb.js"></script>
   <script>
-    // shared/sb.js 에서 생성됨
-    const sb = window.luenSb;
+    // ✅ Supabase 클라이언트 가져오기 (shared/sb.js 기준)
+// - 최신: window.luen.sb() 를 호출하면 클라이언트가 나옵니다.
+// - 과거 호환: window.neo.sb() 도 지원
+const sb = (window.luen && typeof window.luen.sb === 'function')
+  ? window.luen.sb()
+  : (window.neo && typeof window.neo.sb === 'function')
+    ? window.neo.sb()
+    : null;
 
-    async function adminLogin() {
+if (!sb || typeof sb.from !== 'function') {
+  console.error('[ADMIN LOGIN] Supabase client init failed:', sb);
+  const errorBox = document.getElementById('errorBox');
+  if (errorBox) {
+    errorBox.textContent = '초기화 오류: Supabase 연결이 준비되지 않았습니다.
+shared/config.js, shared/sb.js 로딩과 키 값을 확인하세요.';
+  }
+}
+async function adminLogin() {
       const id = document.getElementById('adminId').value.trim();
       const pw = document.getElementById('adminPw').value.trim();
       const errorBox = document.getElementById('errorBox');

@@ -507,7 +507,7 @@
         </div>
 
         <div class="info-text">
-          오늘 수익은 <b>00시</b> 기준 자동지급 로그(payout/auto)로 계산됩니다.
+          오늘 수익은 <b>00시</b> 기준 자동지급 로그(payout)로 계산됩니다.
         </div>
 
         <div class="error-inline" id="realtimeError">
@@ -1084,7 +1084,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
         .from('app_profit_logs')
         .select('amount_delta, created_at, source_type')
         .eq('user_id', userId)
-        .in('source_type', ['payout','auto'])
+        .eq('source_type', 'payout')
         .gte('created_at', startIso)
         .order('created_at', { ascending: true });
 
@@ -1101,7 +1101,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
         .from('app_profit_logs')
         .select('amount_delta, created_at, source_type')
         .eq('user_id', userId)
-        .in('source_type', ['payout','auto'])
+        .eq('source_type', 'payout')
         .order('created_at', { ascending: false })
         .limit(limit);
 
@@ -1115,7 +1115,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
     }
 
 
-    // ✅ 누적 수익(전체) 계산: app_profit_logs 중 payout/auto 로그를 합산
+    // ✅ 누적 수익(전체) 계산: app_profit_logs 중 payout 로그를 합산
     async function fetchProfitTotal(userId) {
       const pageSize = 1000;
       let from = 0;
@@ -1126,7 +1126,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
           .from('app_profit_logs')
           .select('amount_delta, created_at, source_type')
           .eq('user_id', userId)
-          .in('source_type', ['payout','auto'])
+          .eq('source_type', 'payout')
           .order('created_at', { ascending: true })
           .range(from, from + pageSize - 1);
 
@@ -1375,8 +1375,8 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
         // users 값
         const amount = Number(userRow.amount || 0);
         const realizedTotalFromUsers = Number(userRow.realized_amount || 0);
-        const totalProfit = await fetchProfitTotal(userRow.id); // ✅ 자동지급 payout 로그 합산 기준
-        const totalAssetTotal = amount + totalProfit;// logs
+        const totalProfit = Number(userRow.realized_amount || 0); // ✅ 누적 수익은 users.realized_amount 기준
+        const totalAssetTotal = amount + totalProfit;
         const todayLogs = await fetchProfitLogsForToday(userRow.id);
         const recentLogs = await fetchProfitLogsRecent(userRow.id, 60);
 
@@ -1458,11 +1458,11 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
 
         // ✅ 수익(오늘/누적) 및 총금액 배지는 계속 유지/갱신
         // ✅ FINAL: 마지막 수익 이벤트 1개 기준으로 배지 단일화
-        const ev = getLastProfitEventDelta(userRow.id, recentLogs);
+        const ev = getLastProfitEventDelta(userRow.id, todayLogs);
 
-        // 배지(오늘/누적/총금액 동일)
-        renderDeltaBadge(realizedBadge, ev.delta, { persistId: 'profitEventBadge', keepOnZero: true });
-        renderDeltaBadge(totalBadge,    ev.delta, { persistId: 'profitEventBadge', keepOnZero: true });
+        // 배지(오늘 payout 기준, 없으면 숨김)
+        renderDeltaBadge(realizedBadge, ev.delta, { persistId: 'profitEventBadge', keepOnZero: false, clearOnZero: true });
+        renderDeltaBadge(totalBadge,    ev.delta, { persistId: 'profitEventBadge', keepOnZero: false, clearOnZero: true });
 
 
         // 숫자

@@ -1062,11 +1062,6 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
           )
           .on(
             'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'app_realized_logs', filter: `user_id=eq.${userId}` },
-            () => rtTriggerReload('app_realized_logs INSERT')
-          )
-          .on(
-            'postgres_changes',
             { event: 'UPDATE', schema: 'public', table: 'app_users', filter: `id=eq.${userId}` },
             (payload) => rtTriggerReload('users UPDATE')
           )
@@ -1085,96 +1080,65 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
       start.setHours(0,0,0,0);
       const startIso = start.toISOString();
 
-      const [payoutRes, realizedRes] = await Promise.all([
-        supabase
-          .from('app_profit_logs')
-          .select('amount_delta, created_at, source_type')
-          .eq('user_id', userId)
-          .eq('source_type', 'payout')
-          .gte('created_at', startIso)
-          .order('created_at', { ascending: true }),
-        supabase
-          .from('app_realized_logs')
-          .select('delta, created_at, note')
-          .eq('user_id', userId)
-          .gte('created_at', startIso)
-          .order('created_at', { ascending: true })
-      ]);
+      const { data, error } = await supabase
+        .from('app_profit_logs')
+        .select('amount_delta, created_at, source_type')
+        .eq('user_id', userId)
+        .in('source_type', ['payout','auto'])
+        .gte('created_at', startIso)
+        .order('created_at', { ascending: true });
 
-      if (payoutRes.error) throw payoutRes.error;
-      if (realizedRes.error) throw realizedRes.error;
-
-      const payoutRows = (Array.isArray(payoutRes.data) ? payoutRes.data : []).map(r => ({
+      if (error) throw error;
+      return (Array.isArray(data) ? data : []).map(r => ({
         delta: Number(r.amount_delta || 0),
         created_at: r.created_at,
-        source_type: 'payout',
-        note: '자동지급'
+        source_type: r.source_type || 'payout'
       }));
-
-      const realizedRows = (Array.isArray(realizedRes.data) ? realizedRes.data : []).map(r => ({
-        delta: Number(r.delta || 0),
-        created_at: r.created_at,
-        source_type: 'manual',
-        note: r.note || '수동지급'
-      }));
-
-      return [...payoutRows, ...realizedRows].sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
-    }));
     }
 
     async function fetchProfitLogsRecent(userId, limit = 60) {
-      const [payoutRes, realizedRes] = await Promise.all([
-        supabase
-          .from('app_profit_logs')
-          .select('amount_delta, created_at, source_type')
-          .eq('user_id', userId)
-          .eq('source_type', 'payout')
-          .order('created_at', { ascending: false })
-          .limit(limit),
-        supabase
-          .from('app_realized_logs')
-          .select('delta, created_at, note')
-          .eq('user_id', userId)
-          .order('created_at', { ascending: false })
-          .limit(limit)
-      ]);
+      const { data, error } = await supabase
+        .from('app_profit_logs')
+        .select('amount_delta, created_at, source_type')
+        .eq('user_id', userId)
+        .in('source_type', ['payout','auto'])
+        .order('created_at', { ascending: false })
+        .limit(limit);
 
-      if (payoutRes.error) throw payoutRes.error;
-      if (realizedRes.error) throw realizedRes.error;
-
-      const payoutRows = (Array.isArray(payoutRes.data) ? payoutRes.data : []).map(r => ({
+      if (error) throw error;
+      const arr = Array.isArray(data) ? data : [];
+      return arr.map(r => ({
         delta: Number(r.amount_delta || 0),
         created_at: r.created_at,
-        source_type: 'payout',
-        note: '자동지급'
-      }));
-
-      const realizedRows = (Array.isArray(realizedRes.data) ? realizedRes.data : []).map(r => ({
-        delta: Number(r.delta || 0),
-        created_at: r.created_at,
-        source_type: 'manual',
-        note: r.note || '수동지급'
-      }));
-
-      return [...payoutRows, ...realizedRows]
-        .sort((a,b) => new Date(a.created_at) - new Date(b.created_at))
-        .slice(-limit);
-    })).reverse(); // 오래된 -> 최신
+        source_type: r.source_type || 'payout'
+      })).reverse(); // 오래된 -> 최신
     }
 
 
     // ✅ 누적 수익(전체) 계산: app_profit_logs 중 payout/auto 로그를 합산
     async function fetchProfitTotal(userId) {
-      // ✅ 누적수익은 DB에 동기화된 realized_amount를 단일 기준으로 사용
-      const { data, error } = await supabase
-        .from('app_users')
-        .select('realized_amount')
-        .eq('id', userId)
-        .maybeSingle();
+      const pageSize = 1000;
+      let from = 0;
+      let sum = 0;
 
-      if (error) throw error;
-      return Number(data?.realized_amount || 0);
-    }
+      while (true) {
+        const { data, error } = await supabase
+          .from('app_profit_logs')
+          .select('amount_delta, created_at, source_type')
+          .eq('user_id', userId)
+          .in('source_type', ['payout','auto'])
+          .order('created_at', { ascending: true })
+          .range(from, from + pageSize - 1);
+
+        if (error) throw error;
+        const rows = Array.isArray(data) ? data : [];
+        if (rows.length === 0) break;
+
+        sum += rows.reduce((acc, r) => acc + Number(r.amount_delta || 0), 0);
+
+        if (rows.length < pageSize) break;
+        from += pageSize;
+      }
 
       return sum;
     }
@@ -1494,21 +1458,11 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
 
         // ✅ 수익(오늘/누적) 및 총금액 배지는 계속 유지/갱신
         // ✅ FINAL: 마지막 수익 이벤트 1개 기준으로 배지 단일화
-        const ev = (profitMode === 'today')
-          ? getLastProfitEventDelta(userRow.id + ':today', todayLogs)
-          : getLastProfitEventDelta(userRow.id, recentLogs);
+        const ev = getLastProfitEventDelta(userRow.id, recentLogs);
 
-        // 오늘 모드: 오늘 로그가 없으면 배지 제거
-        renderDeltaBadge(realizedBadge, ev.delta, {
-          persistId: (profitMode === 'today') ? 'profitEventBadgeToday' : 'profitEventBadge',
-          keepOnZero: profitMode !== 'today',
-          clearOnZero: profitMode === 'today'
-        });
-        renderDeltaBadge(totalBadge, ev.delta, {
-          persistId: (profitMode === 'today') ? 'profitEventBadgeToday' : 'profitEventBadge',
-          keepOnZero: profitMode !== 'today',
-          clearOnZero: profitMode === 'today'
-        });
+        // 배지(오늘/누적/총금액 동일)
+        renderDeltaBadge(realizedBadge, ev.delta, { persistId: 'profitEventBadge', keepOnZero: true });
+        renderDeltaBadge(totalBadge,    ev.delta, { persistId: 'profitEventBadge', keepOnZero: true });
 
 
         // 숫자

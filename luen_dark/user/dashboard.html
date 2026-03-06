@@ -818,7 +818,7 @@
     
     /* =========================
       ✅ FINAL: 수익 증감배지(이벤트 기준 단일화)
-      - app_profit_logs(payout/auto) 최신 1건을 '마지막 수익 이벤트'로 간주
+      - app_profit_logs(payout) 최신 1건을 '마지막 수익 이벤트'로 간주
       - 새로고침/재조회에도 유지 (localStorage)
       - 오늘/누적/총금액 모두 동일 배지
     ========================= */
@@ -1057,7 +1057,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
             { event: 'INSERT', schema: 'public', table: 'app_profit_logs', filter: `user_id=eq.${userId}` },
             (payload) => {
               const t = payload?.new?.source_type;
-              if (t === 'payout' || t === 'auto') rtTriggerReload('app_profit_logs INSERT');
+              if (t === 'payout') rtTriggerReload('app_profit_logs INSERT');
             }
           )
           .on(
@@ -1115,7 +1115,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
     }
 
 
-    // ✅ 누적 수익(전체) 계산: app_profit_logs 중 payout 로그를 합산
+    // ✅ 누적 수익(전체) 계산: app_profit_logs 중 payout/auto 로그를 합산
     async function fetchProfitTotal(userId) {
       const pageSize = 1000;
       let from = 0;
@@ -1375,8 +1375,8 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
         // users 값
         const amount = Number(userRow.amount || 0);
         const realizedTotalFromUsers = Number(userRow.realized_amount || 0);
-        const totalProfit = Number(userRow.realized_amount || 0); // ✅ 누적 수익은 users.realized_amount 기준
-        const totalAssetTotal = amount + totalProfit;
+        const totalProfit = Number(userRow.realized_amount || 0); // ✅ 누적 수익은 users.realized_amount 기준(수동+자동 소급 동기화값)
+        const totalAssetTotal = amount + totalProfit;// logs
         const todayLogs = await fetchProfitLogsForToday(userRow.id);
         const recentLogs = await fetchProfitLogsRecent(userRow.id, 60);
 
@@ -1456,13 +1456,19 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
         if (amountBadge) { amountBadge.className = ''; amountBadge.textContent = ''; }
         if (investBadge) { investBadge.className = ''; investBadge.textContent = ''; }
 
-        // ✅ 수익(오늘/누적) 및 총금액 배지는 계속 유지/갱신
-        // ✅ FINAL: 마지막 수익 이벤트 1개 기준으로 배지 단일화
-        const ev = getLastProfitEventDelta(userRow.id, todayLogs);
+        // ✅ 수익(오늘/누적) 및 총금액 배지
+        // - 오늘 모드: 오늘 payout만 기준, 없으면 00시 이후 배지 제거
+        // - 누적 모드: 최근 payout 기준으로 표시
+        const badgeLogs = (profitMode === 'today') ? todayLogs : recentLogs;
+        const ev = getLastProfitEventDelta(userRow.id + ':' + profitMode, badgeLogs);
 
-        // 배지(오늘 payout 기준, 없으면 숨김)
-        renderDeltaBadge(realizedBadge, ev.delta, { persistId: 'profitEventBadge', keepOnZero: false, clearOnZero: true });
-        renderDeltaBadge(totalBadge,    ev.delta, { persistId: 'profitEventBadge', keepOnZero: false, clearOnZero: true });
+        if (profitMode === 'today') {
+          renderDeltaBadge(realizedBadge, ev.delta, { persistId: 'profitTodayBadge', keepOnZero: false, clearOnZero: true });
+          renderDeltaBadge(totalBadge,  ev.delta, { persistId: 'profitTodayBadge', keepOnZero: false, clearOnZero: true });
+        } else {
+          renderDeltaBadge(realizedBadge, ev.delta, { persistId: 'profitTotalBadge', keepOnZero: true });
+          renderDeltaBadge(totalBadge,    ev.delta, { persistId: 'profitTotalBadge', keepOnZero: true });
+        }
 
 
         // 숫자

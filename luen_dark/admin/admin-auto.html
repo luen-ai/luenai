@@ -1,0 +1,39 @@
+﻿<label>자동 지급</label>
+<select id="enabled">
+<option value="true">ON</option>
+<option value="false">OFF</option>
+</select>
+
+<label>간격(분)</label>
+<input id="minutes" type="number">
+
+<label>최소 비율</label>
+<input id="min_rate">
+
+<label>최대 비율</label>
+<input id="max_rate">
+
+<button onclick="save()">저장</button>
+
+<script>
+async function save(){
+
+const enabled=document.getElementById('enabled').value
+const minutes=document.getElementById('minutes').value
+const min=document.getElementById('min_rate').value
+const max=document.getElementById('max_rate').value
+
+await sb
+.from('app_payout_settings')
+.update({
+enabled:enabled==='true',
+every_minutes:Number(minutes),
+min_rate:Number(min),
+max_rate:Number(max)
+})
+.eq('id',1)
+
+alert("저장 완료")
+
+}
+</script>

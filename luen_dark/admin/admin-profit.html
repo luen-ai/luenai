@@ -122,7 +122,7 @@
       }
 
       // ✅ 간단한 관리자 체크(클라이언트단) - 실제 보안은 RLS/서버에서
-      const meRaw = localStorage.getItem('luen_admin');
+      const meRaw = localStorage.getItem('luen_admin') || localStorage.getItem('luenai_current_user');
       try {
         const me = meRaw ? JSON.parse(meRaw) : null;
         if (!me || me.role !== 'admin') {
@@ -147,31 +147,28 @@
             .from('app_profit_logs')
             .select('amount_delta, source_type, created_at')
             .eq('user_id', userId)
-            .in('source_type', ['payout','auto'])
+            .eq('source_type', 'payout')
             .order('created_at', { ascending: false })
             .limit(20)
         ]);
 
-        const realizedErr = realizedRes.error;
-        const payoutErr = payoutRes.error;
-
-        if (realizedErr || payoutErr) {
-          console.error('[logs] realized error:', realizedErr);
-          console.error('[logs] payout error:', payoutErr);
+        if (realizedRes.error || payoutRes.error) {
+          console.error('[logs] realized error:', realizedRes.error);
+          console.error('[logs] payout error:', payoutRes.error);
           tbody.innerHTML = '<tr><td colspan="3" class="muted">로그를 불러오지 못했습니다.</td></tr>';
           return;
         }
 
         const realizedRows = (realizedRes.data || []).map(row => ({
           amount: Number(row.delta || 0),
-          note: row.note || 'manual-realized',
+          note: row.note || 'admin-profit',
           created_at: row.created_at,
-          kind: 'realized'
+          kind: 'manual'
         }));
 
         const payoutRows = (payoutRes.data || []).map(row => ({
           amount: Number(row.amount_delta || 0),
-          note: (row.source_type || 'payout'),
+          note: row.source_type || 'payout',
           created_at: row.created_at,
           kind: 'payout'
         }));
@@ -189,8 +186,7 @@
           const dt = new Date(row.created_at);
           const when = dt.toLocaleString('ko-KR');
           const sign = row.amount > 0 ? '+' : '';
-          const label = row.kind === 'payout' ? '자동지급' : '수동조정';
-          const note = row.note ? `${label} / ${row.note}` : label;
+          const note = row.kind === 'payout' ? '자동지급 / payout' : (row.note || '수동조정');
           return `<tr>
             <td>${when}</td>
             <td><b>${sign}${fmt.format(row.amount)}</b></td>

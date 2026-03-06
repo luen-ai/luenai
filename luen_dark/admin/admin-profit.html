@@ -34,6 +34,7 @@
       <div class="title">luen AI ADMIN · <span class="pill">실현수익 증감</span></div>
       <div class="row">
         <button type="button" id="btnGoMembers">회원 & 투자 관리</button>
+        <button type="button" id="btnGoAuto">자동지급 설정</button>
         <button type="button" id="btnLogout">로그아웃</button>
       </div>
     </div>
@@ -79,7 +80,7 @@
 
       <div class="card">
         <div class="pill" style="margin-bottom:10px">수익 로그 타임라인 (최근 20건)</div>
-        <div class="muted" style="margin-bottom:10px">선택한 유저의 최근 기록을 보여줍니다.</div>
+        <div class="muted" style="margin-bottom:10px">선택한 유저의 최근 기록을 보여줍니다. (수동 실현수익 + 자동지급 payout 포함)</div>
 
         <table>
           <thead>
@@ -121,7 +122,7 @@
       }
 
       // ✅ 간단한 관리자 체크(클라이언트단) - 실제 보안은 RLS/서버에서
-      const meRaw = localStorage.getItem('luenai_current_user');
+      const meRaw = localStorage.getItem('luen_admin');
       try {
         const me = meRaw ? JSON.parse(meRaw) : null;
         if (!me || me.role !== 'admin') {
@@ -135,18 +136,68 @@
         const tbody = document.getElementById('tbodyLogs');
         tbody.innerHTML = '<tr><td colspan="3" class="muted">불러오는 중...</td></tr>';
 
-        const { data, error } = await sb
-          .from('app_realized_logs')
-          .select('delta, note, created_at')
-          .eq('user_id', userId)
-          .order('created_at', { ascending: false })
-          .limit(20);
+        const [realizedRes, payoutRes] = await Promise.all([
+          sb
+            .from('app_realized_logs')
+            .select('delta, note, created_at')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(20),
+          sb
+            .from('app_profit_logs')
+            .select('amount_delta, source_type, created_at')
+            .eq('user_id', userId)
+            .in('source_type', ['payout','auto'])
+            .order('created_at', { ascending: false })
+            .limit(20)
+        ]);
 
-        if (error) {
-          console.error('[logs] error:', error);
+        const realizedErr = realizedRes.error;
+        const payoutErr = payoutRes.error;
+
+        if (realizedErr || payoutErr) {
+          console.error('[logs] realized error:', realizedErr);
+          console.error('[logs] payout error:', payoutErr);
           tbody.innerHTML = '<tr><td colspan="3" class="muted">로그를 불러오지 못했습니다.</td></tr>';
           return;
         }
+
+        const realizedRows = (realizedRes.data || []).map(row => ({
+          amount: Number(row.delta || 0),
+          note: row.note || 'manual-realized',
+          created_at: row.created_at,
+          kind: 'realized'
+        }));
+
+        const payoutRows = (payoutRes.data || []).map(row => ({
+          amount: Number(row.amount_delta || 0),
+          note: (row.source_type || 'payout'),
+          created_at: row.created_at,
+          kind: 'payout'
+        }));
+
+        const rows = [...realizedRows, ...payoutRows]
+          .sort((a,b) => new Date(b.created_at) - new Date(a.created_at))
+          .slice(0, 20);
+
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="3" class="muted">기록이 없습니다.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = rows.map(row => {
+          const dt = new Date(row.created_at);
+          const when = dt.toLocaleString('ko-KR');
+          const sign = row.amount > 0 ? '+' : '';
+          const label = row.kind === 'payout' ? '자동지급' : '수동조정';
+          const note = row.note ? `${label} / ${row.note}` : label;
+          return `<tr>
+            <td>${when}</td>
+            <td><b>${sign}${fmt.format(row.amount)}</b></td>
+            <td>${note}</td>
+          </tr>`;
+        }).join('');
+      }
 
         if (!data || data.length === 0) {
           tbody.innerHTML = '<tr><td colspan="3" class="muted">기록이 없습니다.</td></tr>';
@@ -261,6 +312,9 @@
 
       document.getElementById('btnGoMembers').addEventListener('click', () => {
         window.location.href = 'admin_dashboard.html';
+      });
+      document.getElementById('btnGoAuto').addEventListener('click', () => {
+        window.location.href = 'admin-auto.html';
       });
 
       document.getElementById('btnLogout').addEventListener('click', () => {

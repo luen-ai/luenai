@@ -507,7 +507,7 @@
         </div>
 
         <div class="info-text">
-          오늘 수익은 <b>00시</b> 기준으로 계산됩니다.
+          오늘 수익은 <b>00시</b> 기준 자동지급 로그(payout/auto)로 계산됩니다.
         </div>
 
         <div class="error-inline" id="realtimeError">
@@ -818,7 +818,7 @@
     
     /* =========================
       ✅ FINAL: 수익 증감배지(이벤트 기준 단일화)
-      - app_realized_logs 최신 1건을 '마지막 수익 이벤트'로 간주
+      - app_profit_logs(payout/auto) 최신 1건을 '마지막 수익 이벤트'로 간주
       - 새로고침/재조회에도 유지 (localStorage)
       - 오늘/누적/총금액 모두 동일 배지
     ========================= */
@@ -1054,8 +1054,11 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
           .channel('luenai-rt-' + userId)
           .on(
             'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'app_realized_logs', filter: `user_id=eq.${userId}` },
-            (payload) => rtTriggerReload('app_realized_logs INSERT')
+            { event: 'INSERT', schema: 'public', table: 'app_profit_logs', filter: `user_id=eq.${userId}` },
+            (payload) => {
+              const t = payload?.new?.source_type;
+              if (t === 'payout' || t === 'auto') rtTriggerReload('app_profit_logs INSERT');
+            }
           )
           .on(
             'postgres_changes',
@@ -1078,31 +1081,41 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
       const startIso = start.toISOString();
 
       const { data, error } = await supabase
-        .from('app_realized_logs')
-        .select('delta, created_at')
+        .from('app_profit_logs')
+        .select('amount_delta, created_at, source_type')
         .eq('user_id', userId)
+        .in('source_type', ['payout','auto'])
         .gte('created_at', startIso)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      return Array.isArray(data) ? data : [];
+      return (Array.isArray(data) ? data : []).map(r => ({
+        delta: Number(r.amount_delta || 0),
+        created_at: r.created_at,
+        source_type: r.source_type || 'payout'
+      }));
     }
 
     async function fetchProfitLogsRecent(userId, limit = 60) {
       const { data, error } = await supabase
-        .from('app_realized_logs')
-        .select('delta, created_at')
+        .from('app_profit_logs')
+        .select('amount_delta, created_at, source_type')
         .eq('user_id', userId)
+        .in('source_type', ['payout','auto'])
         .order('created_at', { ascending: false })
         .limit(limit);
 
       if (error) throw error;
       const arr = Array.isArray(data) ? data : [];
-      return arr.reverse(); // 오래된 -> 최신
+      return arr.map(r => ({
+        delta: Number(r.amount_delta || 0),
+        created_at: r.created_at,
+        source_type: r.source_type || 'payout'
+      })).reverse(); // 오래된 -> 최신
     }
 
 
-    // ✅ 누적 수익(전체) 계산: users.realized_amount 트리거가 지연/누락되어도 정확하게 표시하기 위해 app_realized_logs를 합산
+    // ✅ 누적 수익(전체) 계산: app_profit_logs 중 payout/auto 로그를 합산
     async function fetchProfitTotal(userId) {
       const pageSize = 1000;
       let from = 0;
@@ -1110,17 +1123,18 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
 
       while (true) {
         const { data, error } = await supabase
-          .from('app_realized_logs')
-          .select('delta, created_at')
+          .from('app_profit_logs')
+          .select('amount_delta, created_at, source_type')
           .eq('user_id', userId)
-        .order('created_at', { ascending: true })
+          .in('source_type', ['payout','auto'])
+          .order('created_at', { ascending: true })
           .range(from, from + pageSize - 1);
 
         if (error) throw error;
         const rows = Array.isArray(data) ? data : [];
         if (rows.length === 0) break;
 
-        sum += rows.reduce((acc, r) => acc + Number(r.delta || 0), 0);
+        sum += rows.reduce((acc, r) => acc + Number(r.amount_delta || 0), 0);
 
         if (rows.length < pageSize) break;
         from += pageSize;
@@ -1361,7 +1375,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
         // users 값
         const amount = Number(userRow.amount || 0);
         const realizedTotalFromUsers = Number(userRow.realized_amount || 0);
-        const totalProfit = realizedTotalFromUsers; // ✅ 누적 수익은 users.realized_amount 기준
+        const totalProfit = await fetchProfitTotal(userRow.id); // ✅ 자동지급 payout 로그 합산 기준
         const totalAssetTotal = amount + totalProfit;// logs
         const todayLogs = await fetchProfitLogsForToday(userRow.id);
         const recentLogs = await fetchProfitLogsRecent(userRow.id, 60);

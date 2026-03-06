@@ -1,39 +1,240 @@
-﻿<label>자동 지급</label>
-<select id="enabled">
-<option value="true">ON</option>
-<option value="false">OFF</option>
-</select>
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>LUEN AI ADMIN - 자동지급 설정</title>
+  <link rel="stylesheet" href="../shared/theme.css" />
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#0b1220;color:#e5eefb;font-family:system-ui,-apple-system,sans-serif}
+    .wrap{max-width:980px;margin:24px auto;padding:0 14px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+    .title{font-weight:800;letter-spacing:.06em}
+    .card{background:#0f172a;border:1px solid rgba(255,255,255,.10);border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.30);padding:16px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+    .row{display:flex;gap:10px;align-items:center}
+    .row-col{display:flex;flex-direction:column;gap:6px}
+    label{font-size:12px;color:#9fb3ce}
+    input,select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:#0b1220;color:#e5eefb}
+    button{padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:#0b1220;color:#e5eefb;cursor:pointer}
+    button.primary{background:linear-gradient(135deg,#60a5fa,#3b82f6);border:none;color:#06111c;font-weight:800}
+    .muted{color:#9fb3ce;font-size:13px;line-height:1.5}
+    .err{color:#ef4444;font-size:13px;min-height:18px;margin-top:10px;white-space:pre-line}
+    .ok{color:#22c55e;font-size:13px;min-height:18px;margin-top:10px;white-space:pre-line}
+    .pill{display:inline-block;padding:3px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);font-size:12px;color:#9fb3ce}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="title">LUEN AI ADMIN · <span class="pill">자동지급 설정</span></div>
+      <div class="row">
+        <button type="button" id="btnGoMembers">회원 & 투자 관리</button>
+        <button type="button" id="btnGoProfit">실현수익 증감</button>
+        <button type="button" id="btnLogout">로그아웃</button>
+      </div>
+    </div>
 
-<label>간격(분)</label>
-<input id="minutes" type="number">
+    <div class="card muted" style="margin-bottom:14px">
+      수동지급은 그대로 유지됩니다.<br/>
+      이 페이지는 <b>자동 수익 지급</b>의 ON/OFF, 간격, 시간창, 비율, 안전장치를 설정합니다.
+    </div>
 
-<label>최소 비율</label>
-<input id="min_rate">
+    <div class="grid">
+      <div class="card">
+        <div class="row-col">
+          <label for="enabled">자동지급 ON/OFF</label>
+          <select id="enabled">
+            <option value="true">ON</option>
+            <option value="false">OFF</option>
+          </select>
+        </div>
 
-<label>최대 비율</label>
-<input id="max_rate">
+        <div class="grid" style="margin-top:12px">
+          <div class="row-col">
+            <label for="every_minutes">지급 간격 (분)</label>
+            <input id="every_minutes" type="number" min="1" />
+          </div>
+          <div class="row-col">
+            <label for="max_single_payout">1회 최대 지급액</label>
+            <input id="max_single_payout" type="number" min="0" />
+          </div>
+        </div>
 
-<button onclick="save()">저장</button>
+        <div class="grid" style="margin-top:12px">
+          <div class="row-col">
+            <label for="start_hour">시작 시간 (0~23)</label>
+            <input id="start_hour" type="number" min="0" max="23" />
+          </div>
+          <div class="row-col">
+            <label for="end_hour">종료 시간 (0~23)</label>
+            <input id="end_hour" type="number" min="0" max="23" />
+          </div>
+        </div>
 
-<script>
-async function save(){
+        <div class="grid" style="margin-top:12px">
+          <div class="row-col">
+            <label for="min_rate">최소 비율</label>
+            <input id="min_rate" type="number" step="0.0001" min="0" />
+          </div>
+          <div class="row-col">
+            <label for="max_rate">최대 비율</label>
+            <input id="max_rate" type="number" step="0.0001" min="0" />
+          </div>
+        </div>
 
-const enabled=document.getElementById('enabled').value
-const minutes=document.getElementById('minutes').value
-const min=document.getElementById('min_rate').value
-const max=document.getElementById('max_rate').value
+        <div class="grid" style="margin-top:12px">
+          <div class="row-col">
+            <label for="daily_user_cap">유저 1명 하루 최대</label>
+            <input id="daily_user_cap" type="number" min="0" />
+          </div>
+          <div class="row-col">
+            <label for="daily_system_cap">시스템 하루 최대</label>
+            <input id="daily_system_cap" type="number" min="0" />
+          </div>
+        </div>
 
-await sb
-.from('app_payout_settings')
-.update({
-enabled:enabled==='true',
-every_minutes:Number(minutes),
-min_rate:Number(min),
-max_rate:Number(max)
-})
-.eq('id',1)
+        <div class="actions">
+          <button type="button" class="primary" id="btnSave">저장</button>
+          <button type="button" id="btnReload">새로고침</button>
+        </div>
 
-alert("저장 완료")
+        <div class="err" id="errBox"></div>
+        <div class="ok" id="okBox"></div>
+      </div>
 
-}
-</script>
+      <div class="card">
+        <div class="pill" style="margin-bottom:10px">현재 설정 요약</div>
+        <div class="muted" id="summaryBox">불러오는 중...</div>
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,.10);margin:14px 0"/>
+        <div class="pill" style="margin-bottom:10px">운영 메모</div>
+        <div class="muted">
+          · 수동지급(admin-profit)은 그대로 유지됩니다.<br/>
+          · 자동지급은 <b>app_payout_settings</b>의 값만 바꾸면 즉시 반영됩니다.<br/>
+          · 크론은 1분마다 함수만 호출하고, 실제 지급은 여기 설정값을 보고 결정하는 방식이 가장 안정적입니다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../shared/config.js"></script>
+  <script src="../shared/sb.js"></script>
+  <script src="../shared/app.js"></script>
+  <script>
+    (function(){
+      const errBox = document.getElementById('errBox');
+      const okBox = document.getElementById('okBox');
+      const summaryBox = document.getElementById('summaryBox');
+      function setErr(msg){ errBox.textContent = msg || ''; okBox.textContent=''; }
+      function setOk(msg){ okBox.textContent = msg || ''; errBox.textContent=''; }
+
+      const sb = (window.luen && typeof window.luen.sb === 'function') ? window.luen.sb() : null;
+      if (!sb || typeof sb.from !== 'function') {
+        setErr('초기화 오류: Supabase 연결이 준비되지 않았습니다.');
+        console.error('[ADMIN-AUTO] sb init failed:', sb);
+        return;
+      }
+
+      const adminFlag = localStorage.getItem('luen_admin_login');
+      if (adminFlag !== 'true') {
+        alert('관리자 로그인이 필요합니다.');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      function fillForm(row){
+        document.getElementById('enabled').value = String(!!row.enabled);
+        document.getElementById('every_minutes').value = row.every_minutes ?? 3;
+        document.getElementById('start_hour').value = row.start_hour ?? 11;
+        document.getElementById('end_hour').value = row.end_hour ?? 18;
+        document.getElementById('min_rate').value = row.min_rate ?? 0.0005;
+        document.getElementById('max_rate').value = row.max_rate ?? 0.002;
+        document.getElementById('daily_user_cap').value = row.daily_user_cap ?? 50000;
+        document.getElementById('daily_system_cap').value = row.daily_system_cap ?? 5000000;
+        document.getElementById('max_single_payout').value = row.max_single_payout ?? 10000;
+
+        summaryBox.innerHTML = `
+          자동지급: <b>${row.enabled ? 'ON' : 'OFF'}</b><br/>
+          간격: <b>${row.every_minutes}분</b><br/>
+          시간창: <b>${row.start_hour}:00 ~ ${row.end_hour}:00</b><br/>
+          비율: <b>${row.min_rate} ~ ${row.max_rate}</b><br/>
+          유저 하루 최대: <b>${Number(row.daily_user_cap || 0).toLocaleString('ko-KR')}원</b><br/>
+          시스템 하루 최대: <b>${Number(row.daily_system_cap || 0).toLocaleString('ko-KR')}원</b><br/>
+          1회 최대 지급: <b>${Number(row.max_single_payout || 0).toLocaleString('ko-KR')}원</b>
+        `;
+      }
+
+      async function loadSettings(){
+        setErr(''); setOk('');
+        const { data, error } = await sb
+          .from('app_payout_settings')
+          .select('*')
+          .eq('id', 1)
+          .maybeSingle();
+
+        if (error) {
+          console.error('[loadSettings] error:', error);
+          setErr('설정을 불러오지 못했습니다: ' + (error.message || '오류'));
+          return;
+        }
+        if (!data) {
+          setErr('app_payout_settings(id=1) 행이 없습니다.');
+          return;
+        }
+        fillForm(data);
+      }
+
+      async function saveSettings(){
+        setErr(''); setOk('');
+        const payload = {
+          enabled: document.getElementById('enabled').value === 'true',
+          every_minutes: Number(document.getElementById('every_minutes').value || 0),
+          start_hour: Number(document.getElementById('start_hour').value || 0),
+          end_hour: Number(document.getElementById('end_hour').value || 0),
+          min_rate: Number(document.getElementById('min_rate').value || 0),
+          max_rate: Number(document.getElementById('max_rate').value || 0),
+          daily_user_cap: Number(document.getElementById('daily_user_cap').value || 0),
+          daily_system_cap: Number(document.getElementById('daily_system_cap').value || 0),
+          max_single_payout: Number(document.getElementById('max_single_payout').value || 0),
+          updated_at: new Date().toISOString()
+        };
+
+        if (payload.every_minutes < 1) return setErr('지급 간격은 1분 이상이어야 합니다.');
+        if (payload.start_hour < 0 || payload.start_hour > 23 || payload.end_hour < 0 || payload.end_hour > 23) return setErr('시작/종료 시간은 0~23 사이여야 합니다.');
+        if (payload.min_rate < 0 || payload.max_rate < 0 || payload.max_rate < payload.min_rate) return setErr('비율 범위를 다시 확인해주세요.');
+        if (payload.daily_user_cap < 0 || payload.daily_system_cap < 0 || payload.max_single_payout < 0) return setErr('한도 값은 0 이상이어야 합니다.');
+
+        const { error } = await sb
+          .from('app_payout_settings')
+          .update(payload)
+          .eq('id', 1);
+
+        if (error) {
+          console.error('[saveSettings] error:', error);
+          setErr('저장 실패: ' + (error.message || '오류'));
+          return;
+        }
+
+        setOk('저장 완료');
+        await loadSettings();
+      }
+
+      document.getElementById('btnSave').addEventListener('click', saveSettings);
+      document.getElementById('btnReload').addEventListener('click', loadSettings);
+      document.getElementById('btnGoMembers').addEventListener('click', ()=> location.href='admin_dashboard.html');
+      document.getElementById('btnGoProfit').addEventListener('click', ()=> location.href='admin-profit.html');
+      document.getElementById('btnLogout').addEventListener('click', ()=>{
+        localStorage.removeItem('luen_admin_login');
+        localStorage.removeItem('luen_admin');
+        location.href='login.html';
+      });
+
+      loadSettings();
+    })();
+  </script>
+</body>
+</html>

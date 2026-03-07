@@ -507,7 +507,7 @@
         </div>
 
         <div class="info-text">
-          오늘 수익은 <b>00시</b> 기준 자동지급 로그(payout/auto)로 계산됩니다.
+          오늘 수익은 <b>00시</b> 기준 수동지급 + 자동지급(payout) 로그로 계산됩니다.
         </div>
 
         <div class="error-inline" id="realtimeError">
@@ -1057,13 +1057,18 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
             { event: 'INSERT', schema: 'public', table: 'app_profit_logs', filter: `user_id=eq.${userId}` },
             (payload) => {
               const t = payload?.new?.source_type;
-              if (t === 'payout' || t === 'auto') rtTriggerReload('app_profit_logs INSERT');
+              if (t === 'payout') rtTriggerReload('app_profit_logs INSERT');
             }
           )
           .on(
             'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'app_realized_logs', filter: `user_id=eq.${userId}` },
+            () => rtTriggerReload('app_realized_logs INSERT')
+          )
+          .on(
+            'postgres_changes',
             { event: 'UPDATE', schema: 'public', table: 'app_users', filter: `id=eq.${userId}` },
-            (payload) => rtTriggerReload('users UPDATE')
+            () => rtTriggerReload('users UPDATE')
           )
           .subscribe();
 
@@ -1080,67 +1085,82 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
       start.setHours(0,0,0,0);
       const startIso = start.toISOString();
 
-      const { data, error } = await supabase
-        .from('app_profit_logs')
-        .select('amount_delta, created_at, source_type')
-        .eq('user_id', userId)
-        .in('source_type', ['payout','auto'])
-        .gte('created_at', startIso)
-        .order('created_at', { ascending: true });
+      const [payoutRes, realizedRes] = await Promise.all([
+        supabase
+          .from('app_profit_logs')
+          .select('amount_delta, created_at, source_type')
+          .eq('user_id', userId)
+          .eq('source_type', 'payout')
+          .gte('created_at', startIso)
+          .order('created_at', { ascending: true }),
+        supabase
+          .from('app_realized_logs')
+          .select('delta, created_at, note')
+          .eq('user_id', userId)
+          .gte('created_at', startIso)
+          .order('created_at', { ascending: true })
+      ]);
 
-      if (error) throw error;
-      return (Array.isArray(data) ? data : []).map(r => ({
+      if (payoutRes.error) throw payoutRes.error;
+      if (realizedRes.error) throw realizedRes.error;
+
+      const payoutRows = (Array.isArray(payoutRes.data) ? payoutRes.data : []).map(r => ({
         delta: Number(r.amount_delta || 0),
         created_at: r.created_at,
-        source_type: r.source_type || 'payout'
+        source_type: 'payout'
       }));
+
+      const realizedRows = (Array.isArray(realizedRes.data) ? realizedRes.data : []).map(r => ({
+        delta: Number(r.delta || 0),
+        created_at: r.created_at,
+        source_type: 'manual'
+      }));
+
+      return [...payoutRows, ...realizedRows]
+        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
     }
 
     async function fetchProfitLogsRecent(userId, limit = 60) {
-      const { data, error } = await supabase
-        .from('app_profit_logs')
-        .select('amount_delta, created_at, source_type')
-        .eq('user_id', userId)
-        .in('source_type', ['payout','auto'])
-        .order('created_at', { ascending: false })
-        .limit(limit);
+      const [payoutRes, realizedRes] = await Promise.all([
+        supabase
+          .from('app_profit_logs')
+          .select('amount_delta, created_at, source_type')
+          .eq('user_id', userId)
+          .eq('source_type', 'payout')
+          .order('created_at', { ascending: false })
+          .limit(limit),
+        supabase
+          .from('app_realized_logs')
+          .select('delta, created_at, note')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(limit)
+      ]);
 
-      if (error) throw error;
-      const arr = Array.isArray(data) ? data : [];
-      return arr.map(r => ({
+      if (payoutRes.error) throw payoutRes.error;
+      if (realizedRes.error) throw realizedRes.error;
+
+      const payoutRows = (Array.isArray(payoutRes.data) ? payoutRes.data : []).map(r => ({
         delta: Number(r.amount_delta || 0),
         created_at: r.created_at,
-        source_type: r.source_type || 'payout'
-      })).reverse(); // 오래된 -> 최신
+        source_type: 'payout'
+      }));
+
+      const realizedRows = (Array.isArray(realizedRes.data) ? realizedRes.data : []).map(r => ({
+        delta: Number(r.delta || 0),
+        created_at: r.created_at,
+        source_type: 'manual'
+      }));
+
+      return [...payoutRows, ...realizedRows]
+        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+        .slice(-limit);
     }
 
 
     // ✅ 누적 수익(전체) 계산: app_profit_logs 중 payout/auto 로그를 합산
-    async function fetchProfitTotal(userId) {
-      const pageSize = 1000;
-      let from = 0;
-      let sum = 0;
-
-      while (true) {
-        const { data, error } = await supabase
-          .from('app_profit_logs')
-          .select('amount_delta, created_at, source_type')
-          .eq('user_id', userId)
-          .in('source_type', ['payout','auto'])
-          .order('created_at', { ascending: true })
-          .range(from, from + pageSize - 1);
-
-        if (error) throw error;
-        const rows = Array.isArray(data) ? data : [];
-        if (rows.length === 0) break;
-
-        sum += rows.reduce((acc, r) => acc + Number(r.amount_delta || 0), 0);
-
-        if (rows.length < pageSize) break;
-        from += pageSize;
-      }
-
-      return sum;
+    async function fetchProfitTotal(userId, fallbackRealizedAmount = 0) {
+      return Number(fallbackRealizedAmount || 0);
     }
 
     /* =========================
@@ -1194,7 +1214,11 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
         item.innerHTML = `
           <div class="timeline-left">
             <div class="timeline-time">${formatKST(r.created_at)}</div>
-            <div class="timeline-msg">${delta > 0 ? '수익 발생' : (delta < 0 ? '손실 발생' : '변동 없음')}</div>
+            <div class="timeline-msg">${
+              r.source_type === 'manual'
+                ? (delta > 0 ? '수동 지급' : (delta < 0 ? '수동 차감' : '수동 조정'))
+                : (delta > 0 ? '자동 지급' : (delta < 0 ? '자동 차감' : '자동 조정'))
+            }</div>
           </div>
           <div class="timeline-delta ${cls}">${txt}</div>
         `;
@@ -1375,8 +1399,8 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
         // users 값
         const amount = Number(userRow.amount || 0);
         const realizedTotalFromUsers = Number(userRow.realized_amount || 0);
-        const totalProfit = await fetchProfitTotal(userRow.id); // ✅ 자동지급 payout 로그 합산 기준
-        const totalAssetTotal = amount + totalProfit;// logs
+        const totalProfit = await fetchProfitTotal(userRow.id, realizedTotalFromUsers); // ✅ 누적수익은 users.realized_amount 기준
+        const totalAssetTotal = amount + totalProfit;
         const todayLogs = await fetchProfitLogsForToday(userRow.id);
         const recentLogs = await fetchProfitLogsRecent(userRow.id, 60);
 
@@ -1391,7 +1415,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
         // ✅ 화면에 표시되는 수익(오늘/누적)
         const realizedShown = (profitMode === 'today') ? todayProfit : totalProfit;
 
-        // ✅ 총금액(투자중 + 실현)은 "항상 누적 실현수익" 기준 (토글과 무관하게 동일해야 함)
+        // ✅ 총금액(투자중 + 실현)은 항상 누적수익(users.realized_amount) 기준
         const totalShown = amount + totalProfit;
 
         // ✅ 타임라인
@@ -1456,13 +1480,19 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
         if (amountBadge) { amountBadge.className = ''; amountBadge.textContent = ''; }
         if (investBadge) { investBadge.className = ''; investBadge.textContent = ''; }
 
-        // ✅ 수익(오늘/누적) 및 총금액 배지는 계속 유지/갱신
-        // ✅ FINAL: 마지막 수익 이벤트 1개 기준으로 배지 단일화
-        const ev = getLastProfitEventDelta(userRow.id, recentLogs);
+        // ✅ 배지
+        // - 오늘 모드: 오늘 로그가 없으면 배지 제거
+        // - 누적 모드: 최근 수익 이벤트 유지
+        const badgeLogs = (profitMode === 'today') ? todayLogs : recentLogs;
+        const ev = getLastProfitEventDelta(userRow.id + ':' + profitMode, badgeLogs);
 
-        // 배지(오늘/누적/총금액 동일)
-        renderDeltaBadge(realizedBadge, ev.delta, { persistId: 'profitEventBadge', keepOnZero: true });
-        renderDeltaBadge(totalBadge,    ev.delta, { persistId: 'profitEventBadge', keepOnZero: true });
+        if (profitMode === 'today') {
+          renderDeltaBadge(realizedBadge, ev.delta, { persistId: 'profitEventBadgeToday', keepOnZero: false, clearOnZero: true });
+          renderDeltaBadge(totalBadge,    ev.delta, { persistId: 'profitEventBadgeToday', keepOnZero: false, clearOnZero: true });
+        } else {
+          renderDeltaBadge(realizedBadge, ev.delta, { persistId: 'profitEventBadgeTotal', keepOnZero: true });
+          renderDeltaBadge(totalBadge,    ev.delta, { persistId: 'profitEventBadgeTotal', keepOnZero: true });
+        }
 
 
         // 숫자
@@ -1501,7 +1531,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
           if (deltas.length === 1) deltas.unshift(0);
           deltas.forEach(d => { c += d; series.push(c); });
           const hint = document.getElementById('chartHint');
-          if (hint) hint.textContent = '오늘 누적(로그 기반)';
+          if (hint) hint.textContent = '오늘 누적(수동 + 자동)';
         } else {
           const deltas = recentLogs.map(r => Number(r.delta || 0));
           const sumRecent = deltas.reduce((s,v)=>s+v,0);
@@ -1512,7 +1542,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
           series = [];
           deltas.forEach(d => { c += d; series.push(c); });
           const hint = document.getElementById('chartHint');
-          if (hint) hint.textContent = '누적(최근 60건 기준)';
+          if (hint) hint.textContent = '누적(최근 60건 수익 로그 기준)';
         }
         drawChart(series);
 

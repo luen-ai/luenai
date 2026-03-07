@@ -507,7 +507,7 @@
         </div>
 
         <div class="info-text">
-          오늘 수익은 <b>00시</b> 기준 수동지급 + 자동지급(payout) 로그로 계산됩니다.
+          오늘 수익은 <b>00시</b> 기준 수익 로그로 계산됩니다.
         </div>
 
         <div class="error-inline" id="realtimeError">
@@ -1214,11 +1214,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
         item.innerHTML = `
           <div class="timeline-left">
             <div class="timeline-time">${formatKST(r.created_at)}</div>
-            <div class="timeline-msg">${
-              r.source_type === 'manual'
-                ? (delta > 0 ? '수동 지급' : (delta < 0 ? '수동 차감' : '수동 조정'))
-                : (delta > 0 ? '자동 지급' : (delta < 0 ? '자동 차감' : '자동 조정'))
-            }</div>
+            <div class="timeline-msg">${delta > 0 ? '수익' : (delta < 0 ? '수익 조정' : '변동 없음')}</div>
           </div>
           <div class="timeline-delta ${cls}">${txt}</div>
         `;
@@ -1531,7 +1527,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
           if (deltas.length === 1) deltas.unshift(0);
           deltas.forEach(d => { c += d; series.push(c); });
           const hint = document.getElementById('chartHint');
-          if (hint) hint.textContent = '오늘 누적(수동 + 자동)';
+          if (hint) hint.textContent = '오늘 누적(수익 기준)';
         } else {
           const deltas = recentLogs.map(r => Number(r.delta || 0));
           const sumRecent = deltas.reduce((s,v)=>s+v,0);
@@ -1542,7 +1538,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
           series = [];
           deltas.forEach(d => { c += d; series.push(c); });
           const hint = document.getElementById('chartHint');
-          if (hint) hint.textContent = '누적(최근 60건 수익 로그 기준)';
+          if (hint) hint.textContent = '누적(최근 60건 기준)';
         }
         drawChart(series);
 

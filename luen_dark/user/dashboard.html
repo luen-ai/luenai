@@ -1214,7 +1214,7 @@ function renderDeltaBadge(badgeEl, delta, opts = {}) {
         item.innerHTML = `
           <div class="timeline-left">
             <div class="timeline-time">${formatKST(r.created_at)}</div>
-            <div class="timeline-msg">${delta > 0 ? '수익' : (delta < 0 ? '수익 조정' : '변동 없음')}</div>
+            <div class="timeline-msg">${delta > 0 ? '수익' : (delta < 0 ? '수익' : '변동 없음')}</div>
           </div>
           <div class="timeline-delta ${cls}">${txt}</div>
         `;
